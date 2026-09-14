@@ -22,7 +22,7 @@ it('adds annual forecast anchors without rebasing actuals or inventing monthly v
  const actual=[{label:'2025-03',spending:40,receipts:35,debt:94},{label:'2026-03',spending:45,receipts:40,debt:95},{label:'2026-07',spending:44,receipts:41,debt:96}];
  const vintage={forecastStart:'2025-26',rows:[{year:'2024-25',spendingBn:400,receiptsBn:350,gdpBn:1000,debtPct:93,debtBn:930},{year:'2025-26',spendingBn:460,receiptsBn:400,gdpBn:1000,debtPct:97,debtBn:970},{year:'2026-27',spendingBn:480,receiptsBn:420,gdpBn:1000,debtPct:98,debtBn:980}]} as unknown as Vintage;
  const rows=overviewForecastRows(actual,vintage,'gdp');
- expect(rows.find(r=>r.label==='2026-03')).toMatchObject({spending:45,spendingForecast:46,debt:95,debtForecast:97,status:'Outturn'});
+ expect(rows.find(r=>r.label==='2026-03')).toMatchObject({spending:45,spendingForecast:46,debt:95,debtForecast:97,status:'Outturn',forecastPeriod:1});
  expect(rows.find(r=>r.label==='2026-08')).toMatchObject({spending:null,spendingForecast:null,debt:null,debtForecast:null,status:'Forecast'});
  expect(rows.at(-1)).toMatchObject({label:'2027-03',spendingForecast:48,receiptsForecast:42,debtForecast:98});
  expect(overviewForecastRows(actual,vintage,'bn').at(-1)?.debtForecast).toBe(980);
