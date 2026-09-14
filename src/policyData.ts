@@ -45,7 +45,8 @@ export function overviewForecastRows(actual:Record<string,string|number|null>[],
   row.spendingForecast=flow('spendingBn');row.receiptsForecast=flow('receiptsBn');
   row.debtForecast=typeof r[units==='bn'?'debtBn':'debtPct']==='number'?r[units==='bn'?'debtBn':'debtPct'] as number:null;
  }
- const baseline=vintage.rows.filter(r=>r.year<vintage.forecastStart).at(-1);
- for(const [date,row] of rows)if(baseline&&date>yearEnd(baseline.year))row.status='Forecast';
+ // Monthly outturn remains outturn even where it overlaps an older forecast.
+ // Only the extension beyond the latest observation is shaded.
+
  return [...rows.values()].sort((a,b)=>String(a.label).localeCompare(String(b.label)));
 }
