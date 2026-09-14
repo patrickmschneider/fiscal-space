@@ -127,7 +127,10 @@ def parse_pesa(raw):
         residual=round(total-sum(x['value'] for x in items),6)
         if abs(residual)>6: raise ValueError(f'PESA composition fails reconciliation in {year}')
         if residual: items.append({'name':'Rounding adjustment','value':residual})
-        years.append({'year':year,'total':total,'items':items})
+        debt_row=next(r for r in rows if str(r[1]).startswith('1.7 Public debt transactions'))
+        debt_transactions=number(debt_row[col])
+        if debt_transactions is None:raise ValueError('Missing public debt transactions')
+        years.append({'year':year,'total':total,'items':items,'debtInterest':debt_transactions})
         social_total=number(by_label['total social protection'][col])
         pensions=number(pension_row[col]);services=number(services_row[col])
         if any(v is None or v<0 for v in [social_total,pensions,services]) or pensions+services>social_total:
@@ -205,7 +208,7 @@ def parse_pesa_history(raw):
                 'One PESA 2026 vintage, 2003-04 onwards. GDP shares use ONS GDP published 30 June 2026, rather than the dashboard’s later GDP vintage.',
                 'Source values are rounded to £0.1 billion and 0.1 percentage point; rounding is retained explicitly. Published TES, accounting adjustments and TME may differ by rounding.',
                 'Social protection includes pensions and social services as well as benefits; it is not a measure of working-age benefit spending alone.',
-                'Debt interest is included within general public services; do not add it again to the function total.',
+                'The source includes public debt transactions within general public services; the dashboard separates that component without changing total spending.',
                 'Classification breaks: education excludes the grant-equivalent element of student loans from 2011-12; transport adds the local-government part of Transport Trading Limited from 2011-12 and Network Rail from 2015-16 (Network Rail is in TME throughout).',
                 'EU VAT-based payments cease to be deducted from EU transactions from 2010-11. COFOG defence differs from NATO defence definitions.',
                 'Economic affairs includes financial-sector interventions and temporary Covid and cost-of-living measures. TME excludes temporary public-sector bank classifications.'
@@ -270,4 +273,10 @@ def fetch_fiscal(fetch):
 def fetch_composition(fetch):
     data = parse_pesa(fetch(PESA_URL))
     data['history'] = parse_pesa_history(fetch(PESA_HISTORY_URL))
+    from .pesa_history import load_history
+    historical=load_history()
+    for row in data['socialProtection']:row['sourceId']='pesa-2026'
+    current={row['year']:row for row in data['socialProtection']}
+    data['socialProtection']=sorted([row for row in historical['years'] if row['year'] not in current]+list(current.values()),key=lambda row:row['year'])
+    data['socialProtectionSources']=historical['sources']+data['sources']
     return data

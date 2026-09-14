@@ -80,6 +80,8 @@ Run the development server first and set `APP_URL` to its printed address. Brows
 
 Personal website integration remains outside scope.
 
+Historical social-protection detail is pinned in `data/pesa-social-history.json`, with Treasury source URLs and SHA-256 checksums for every imported vintage. `python -m pipeline.pesa_history` rebuilds it from the official sources and rejects changed source files for review. Daily composition refreshes combine this back history with the current PESA table; the app labels source vintages and reconciles revisions to the latest parent total. Public debt transactions are separated using the existing long PESA history.
+
 ## Archive and rollback
 
 Every build preserves a checksummed bundle on `data-history` before deployment. `deployment.json` on the live site identifies its snapshot and application commit. Archives contain compressed normalized data and source-checksum metadata, not original source workbooks. Git history preserves previous `latest.json` pointers. The archive pointer describes the latest build attempt; the live `deployment.json` is authoritative for what actually deployed.

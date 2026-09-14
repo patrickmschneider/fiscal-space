@@ -1,6 +1,6 @@
 import {SocialProtection} from './SocialProtection';
 import {useParam,ViewLink} from './urlState';
-import {annualBudgets,budgetComparison,budgetValue,type BudgetYear} from './budgetMath';
+import {separateDebtTransactions,annualBudgets,budgetComparison,budgetValue,type BudgetYear} from './budgetMath';
 import {SourceLine} from './components';
 import {downloadCsv,fmt,type Bundle} from './data';
 
@@ -8,12 +8,12 @@ export function OverviewComposition({bundle}:{bundle:Bundle}){
  const [mode,setMode]=useParam('ocMode','snapshot');const changes=mode==='change';
  const [requestedFrom,setFrom]=useParam('ocFrom','2019-20'),[requestedTo,setTo]=useParam('ocTo','');
  const [rawUnits,setUnits]=useParam('units','gdp');const units=['gdp','bn','share'].includes(rawUnits)?rawUnits:'gdp';
- const spending:BudgetYear[]=bundle.composition.history?.years||[];
+ const spending:BudgetYear[]=(bundle.composition.history?.years||[]).map(separateDebtTransactions);
  const receipts=annualBudgets(bundle.fiscal,'receipts');
  const years=spending.filter(y=>receipts.some(r=>r.year===y.year&&(units!=='gdp'||r.totalPctGdp!=null))&&(units!=='gdp'||y.totalPctGdp!=null)).map(y=>y.year);
  const to=years.includes(requestedTo)?requestedTo:years.at(-1)||'';const from=years.includes(requestedFrom)?requestedFrom:years[0]||'';
  const unit=units==='gdp'?(changes?'pp of GDP':'% of GDP'):units==='share'?(changes?'pp of named total':'% of named total'):'£bn';
- const groups=[{name:'Spending by function',dataset:'functional',total:'Expenditure on services (TES)',years:spending,sources:[...(bundle.composition.history?.sources||[]),...(bundle.fiscal.gdp?.sources||[])],note:'TES differs from total managed expenditure above. Social protection includes pensions; general public services includes debt interest. PESA amounts and GDP shares are rounded and retain the Treasury publication’s GDP vintage. Receipt ratios use the later ONS GDP vintage, as in the full composition view.'},{name:'Receipt sources',dataset:'receipts',total:'Public-sector current receipts',years:receipts,sources:[...bundle.fiscal.sources,...(bundle.fiscal.gdp?.sources||[])],note:'Includes non-tax income. Compulsory social contributions include employer, employee and self-employed NICs. The residual also includes other taxes and accounting differences.'}].map(group=>{
+ const groups=[{name:'Spending by function',dataset:'functional',total:'Expenditure on services (TES)',years:spending,sources:[...(bundle.composition.history?.sources||[]),...(bundle.fiscal.gdp?.sources||[])],note:'TES differs from total managed expenditure above. Social protection includes pensions; public debt transactions are separated from other general public services. This Treasury measure includes Bank of England operations and differs from net debt interest in the deficit decomposition. PESA amounts and GDP shares are rounded and retain the Treasury publication’s GDP vintage. Receipt ratios use the later ONS GDP vintage, as in the full composition view.'},{name:'Receipt sources',dataset:'receipts',total:'Public-sector current receipts',years:receipts,sources:[...bundle.fiscal.sources,...(bundle.fiscal.gdp?.sources||[])],note:'Includes non-tax income. Compulsory social contributions include employer, employee and self-employed NICs. The residual also includes other taxes and accounting differences.'}].map(group=>{
   const end=group.years.find(y=>y.year===to),start=group.years.find(y=>y.year===from);const comparison=start&&end?budgetComparison(start,end,units):null;
   const rows=changes?comparison?.rows.map(r=>({name:r.name,value:r.change}))||[]:end?.items.map(i=>({name:i.name,value:budgetValue(i.value,i.pctGdp,end.total,units)}))||[];
   if(changes&&comparison?.residual!=null&&Math.abs(comparison.residual)>1e-8)rows.push({name:'Unallocated / rounding difference',value:comparison.residual});

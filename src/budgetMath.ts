@@ -40,3 +40,20 @@ export function budgetComparison(first:BudgetYear,last:BudgetYear,units:string){
  const residual=complete&&change!=null?change-rows.reduce((s,r)=>s+r.change!,0):null;
  return {rows,start,end,change,residual};
 }
+
+/** Separate the financing component without changing the published spending total. */
+export function separateDebtTransactions(year:BudgetYear):BudgetYear {
+ if(typeof year.debtInterest!=='number')return year;
+ return {...year,items:year.items.flatMap(item=>item.name==='General public services'?[
+  {name:'Public debt transactions',value:year.debtInterest!,pctGdp:year.debtInterestPctGdp??null},
+  {name:'Other general public services',value:item.value-year.debtInterest!,pctGdp:item.pctGdp!=null&&year.debtInterestPctGdp!=null?item.pctGdp-year.debtInterestPctGdp:null}
+ ]:[item])};
+}
+
+/** Keep historical cash components intact and expose revisions to the current parent. */
+export function socialProtectionItems(detail:{total:number;items:{name:string;value:number}[]},parent:BudgetYear):BudgetItem[]{
+ const social=parent.items.find(i=>i.name==='Social protection');
+ if(!social)return [];
+ const components=[...detail.items,{name:'Revisions / rounding to current total',value:social.value-detail.total}];
+ return components.map(i=>({...i,pctGdp:social.pctGdp!=null&&social.value?i.value/social.value*social.pctGdp:null}));
+}

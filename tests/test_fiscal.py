@@ -152,7 +152,7 @@ class SocialProtectionTests(unittest.TestCase):
         import json
         data=json.loads((Path(__file__).parents[1]/'public/data/composition.json').read_text())
         years=data['socialProtection']
-        self.assertEqual([y['year'] for y in years],['2021-22','2022-23','2023-24','2024-25','2025-26'])
+        self.assertEqual([y['year'] for y in years],[f'{y}-{str(y+1)[2:]}' for y in range(2003,2026)])
         for year in years:
             self.assertAlmostEqual(sum(i['value'] for i in year['items']),year['total'])
         self.assertEqual([i['value'] for i in years[-1]['items']],[154858,196277,56135])

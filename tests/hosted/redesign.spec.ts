@@ -6,7 +6,7 @@ test('overview gives a concise orientation and direct analytical paths',async({p
  await page.goto('./');await expect(page).toHaveTitle('Fiscal Space');
  await expect(page.getByRole('heading',{name:'UK fiscal dashboard',exact:true})).toBeVisible();
  for(const name of ['Overview','Debt & financing','Explore'])await expect(page.getByRole('navigation').getByRole('button',{name,exact:true})).toBeVisible();
- await expect(page.locator('.overview .chart-panel')).toHaveCount(7);
+ await expect(page.locator('.overview .chart-panel:visible')).toHaveCount(7);
  await expect(page.locator('.overview .metric')).toHaveCount(0);
  await expect(page.locator('.overview')).toContainText('Accounting contributions, not estimates of policy effects');
  await expect(page.locator('#overview-position-title')).toBeVisible();
@@ -132,4 +132,20 @@ test('deficit decompositions reconcile and distinguish forecasts and structural 
  await page.getByRole('combobox',{name:'Deficit forecast vintage',exact:true}).selectOption('2025-11');await page.reload();await expect(page.getByRole('combobox',{name:'Deficit forecast vintage',exact:true})).toHaveValue('2025-11');
  await expect(page.locator('#deficit-cycle-title').locator('..').locator('..').locator('..')).toContainText('reconstructed');
  await page.setViewportSize({width:375,height:900});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
+});
+
+test('historical pensions and separate debt transactions work across units and dates',async({page})=>{
+ await page.goto('./?ocTo=2003-04&units=bn');
+ const detail=page.locator('.social-protection-detail');
+ await expect(detail.getByRole('row').filter({hasText:'Pensions'})).toContainText('56.04');
+ await expect(detail).toContainText('PESA 2009');
+ await detail.getByText('Social protection history · 2003–04 onward',{exact:true}).click();
+ await expect(detail.locator('.recharts-line-curve')).toHaveCount(4);
+ await page.goto('./?ocMode=change&ocFrom=2019-20&ocTo=2025-26&units=gdp');
+ await expect(detail.getByRole('row').filter({hasText:'Pensions'})).toContainText('0.08');
+ await expect(detail).toContainText('Revisions / rounding');
+ const spending=page.getByRole('article',{name:'Spending by function',exact:true});
+ await expect(spending.locator('.bar-label').filter({hasText:'Public debt transactions'})).toBeVisible();
+ await expect(spending.locator('.bar-label').filter({hasText:'Other general public services'})).toBeVisible();
+ await expect(spending.locator('.bar-label').filter({hasText:/^General public services/})).toHaveCount(0);
 });
