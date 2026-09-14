@@ -107,6 +107,12 @@ def parse_pesa(raw):
     names = ['General public services','Defence','Public order and safety','Economic affairs','Environment protection',
              'Housing and community amenities','Health','Recreation, culture and religion','Education','Social protection','EU transactions']
     by_label = {str(r[1]).strip().lower():r for r in rows if r[1] is not None}
+    social_index=next(i for i,r in enumerate(rows) if str(r[1]).strip()=='10. Social protection')
+    services_row=rows[social_index+1]
+    if str(services_row[1]).strip()!='of which: personal social services':
+        raise ValueError('Missing social protection personal services subtotal')
+    pension_row=by_label['of which: pensions']
+    social_years=[]
     years=[]
     for col,year in year_columns:
         items=[]
@@ -122,7 +128,15 @@ def parse_pesa(raw):
         if abs(residual)>6: raise ValueError(f'PESA composition fails reconciliation in {year}')
         if residual: items.append({'name':'Rounding adjustment','value':residual})
         years.append({'year':year,'total':total,'items':items})
-    return {'schemaVersion':1,'asOf':years[-1]['year'],'years':years,'unit':'£ million',
+        social_total=number(by_label['total social protection'][col])
+        pensions=number(pension_row[col]);services=number(services_row[col])
+        if any(v is None or v<0 for v in [social_total,pensions,services]) or pensions+services>social_total:
+            raise ValueError('Invalid social protection breakdown')
+        social_years.append({'year':year,'total':social_total,'items':[
+            {'name':'Pensions','value':pensions},
+            {'name':'Other benefits and social-protection spending','value':social_total-pensions-services},
+            {'name':'Personal social services','value':services}]})
+    return {'schemaVersion':1,'asOf':years[-1]['year'],'years':years,'socialProtection':social_years,'unit':'£ million',
        'basis':'Public sector expenditure on services (TES), current prices; includes EU transactions. Different coverage from total managed expenditure.',
        'sources':[{'id':'pesa-2026','name':'HM Treasury · PESA 2026, table 5.2','url':PESA_PAGE,'downloadUrl':PESA_URL,
                    'publicationDate':'2026-07-16','observationDate':years[-1]['year'],'licence':'Open Government Licence v3.0'}],

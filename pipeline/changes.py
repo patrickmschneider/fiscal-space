@@ -15,7 +15,7 @@ def compare_release(group, previous, current):
         return {'kind':'forecast vintages','added':sorted(set(new)-set(old)),
                 'revised':[key for key in old.keys()&new.keys() if old[key]!=new[key]]}
     if group not in ('fiscal',):
-        fields={'composition':['years','history'],'debt':['securities','auctions','calendar','totals'],'curve':['curves','realCurves','breakevenCurves'],'forecast':['cumulative','fiscalYear','vintage']}
+        fields={'composition':['years','history','socialProtection'],'debt':['securities','auctions','calendar','totals'],'curve':['curves','realCurves','breakevenCurves'],'forecast':['cumulative','fiscalYear','vintage']}
         return {'kind':'dataset sections','changedSections':[key for key in fields.get(group,[]) if previous.get(key)!=current.get(key)],'asOfChanged':previous.get('asOf')!=current.get('asOf'),'notes':['Section comparison detects changes but does not classify every value as revision versus new observation. Inspect archived vintages.']}
     old_rows={r['date']:r for r in previous.get('observations',[])}
     new_rows={r['date']:r for r in current.get('observations',[])}

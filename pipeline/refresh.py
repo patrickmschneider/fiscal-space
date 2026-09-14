@@ -62,6 +62,9 @@ def validate(group,data):
         if not data.get('years'):raise ValueError('No annual composition')
         for year in data['years']:
             if abs(sum(x['value'] for x in year['items'])-year['total'])>0.001:raise ValueError('Annual composition does not reconcile')
+        for year in data.get('socialProtection',[]):
+            if abs(sum(x['value'] for x in year['items'])-year['total'])>0.001 or any(x['value']<0 for x in year['items']):
+                raise ValueError('Social protection breakdown does not reconcile')
     elif group=='debt':
         if not data.get('securities'):raise ValueError('No debt securities')
         if abs(sum(s['nominalMillion'] for s in data['securities'])-data['totals']['nominalMillion'])>.001:raise ValueError('Debt total mismatch')
