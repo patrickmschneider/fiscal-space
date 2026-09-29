@@ -99,7 +99,7 @@ test('shared units change headline and official forecast stocks and follow compo
 test('overview composition sits before pricing and compares selected years on consistent scales',async({page,request})=>{
  const data=await(await request.get('data/composition.json')).json();const last=data.history.years.at(-1),first=data.history.years.find((y:{year:string})=>y.year==='2019-20');
  const health=(y:{items:{name:string;pctGdp:number;value:number}[]})=>y.items.find(r=>r.name==='Health')!;
- await page.goto('./');const section=page.locator('.overview-composition');await expect(section).toBeVisible();
+ await page.goto('./');await page.getByRole('button',{name:'Composition',exact:true}).click();const section=page.locator('.overview-composition');await expect(section).toBeVisible();
  const positions=await page.evaluate(()=>['.overview-position-pair','.overview-composition','.overview-deficits','.overview-market'].map(s=>document.querySelector(s)!.getBoundingClientRect().top));expect(positions[0]).toBeLessThan(positions[1]);expect(positions[1]).toBeLessThan(positions[2]);expect(positions[2]).toBeLessThan(positions[3]);
  const row=section.locator('li').filter({hasText:'Health'});await expect(row).toContainText(health(last).pctGdp.toFixed(2));
  await section.getByRole('button',{name:'Change between years',exact:true}).click();await expect(section.getByRole('combobox',{name:'Compare from',exact:true})).toHaveValue('2019-20');await expect(row).toContainText((health(last).pctGdp-health(first).pctGdp).toFixed(2));
@@ -135,7 +135,7 @@ test('deficit decompositions reconcile and distinguish forecasts and structural 
 });
 
 test('historical pensions and separate debt transactions work across units and dates',async({page})=>{
- await page.goto('./?ocTo=2003-04&units=bn');
+ await page.goto('./?ocMode=snapshot&ocTo=2003-04&units=bn');
  const detail=page.locator('.social-protection-detail');
  await expect(detail.getByRole('row').filter({hasText:'Pensions'})).toContainText('56.04');
  await expect(detail).toContainText('PESA 2009');

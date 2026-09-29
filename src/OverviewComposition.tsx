@@ -5,7 +5,7 @@ import {SourceLine} from './components';
 import {downloadCsv,fmt,type Bundle} from './data';
 
 export function OverviewComposition({bundle}:{bundle:Bundle}){
- const [mode,setMode]=useParam('ocMode','snapshot');const changes=mode==='change'||mode==='waterfall';const waterfall=changes;
+ const [mode,setMode]=useParam('ocMode','change');const changes=mode==='change'||mode==='waterfall';const waterfall=changes;
  const [requestedFrom,setFrom]=useParam('ocFrom','2019-20'),[requestedTo,setTo]=useParam('ocTo','');
  const [rawUnits,setUnits]=useParam('units','gdp');const units=['gdp','bn','share'].includes(rawUnits)?rawUnits:'gdp';
  const spending:BudgetYear[]=(bundle.composition.history?.years||[]).map(separateDebtTransactions);
