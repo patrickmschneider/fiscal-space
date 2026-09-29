@@ -8,13 +8,10 @@ test('overview gives a concise orientation and direct analytical paths',async({p
  for(const name of ['Overview','Debt & financing','Explore'])await expect(page.getByRole('navigation').getByRole('button',{name,exact:true})).toBeVisible();
  await expect(page.locator('.overview .chart-panel:visible')).toHaveCount(7);
  await expect(page.locator('.overview .metric')).toHaveCount(0);
- await expect(page.locator('.fs-verdict')).toBeVisible();
- await expect(page.locator('.fs-verdict-word')).toHaveText(/^(Rules at risk|Headroom thin|Headroom eroding|On track|Room for manoeuvre)$/);
- await expect(page.locator('#changes')).toContainText('indicative estimate, not an OBR forecast');
+ await expect(page.locator('.overview')).toContainText('Accounting contributions, not estimates of policy effects');
  await expect(page.locator('#overview-position-title')).toBeVisible();
  for(const id of ['overview-debt','overview-yields','overview-breakeven'])await expect(page.locator(`[aria-labelledby="${id}-title"] .recharts-line-curve`).first()).toBeVisible();
- expect(await page.locator('.fs-verdict-word').evaluate(e=>e.getBoundingClientRect().top)).toBeLessThan(450);
- expect(await page.locator('#overview-position-title').evaluate(e=>e.getBoundingClientRect().top)).toBeLessThan(1400);
+ expect(await page.locator('#overview-position-title').evaluate(e=>e.getBoundingClientRect().top)).toBeLessThan(900);
  await expect(page.getByRole('link',{name:'Spending & tax composition →',exact:true})).toHaveAttribute('href',/page=fiscal&section=composition/);
  await expect(page.getByRole('link',{name:'Compare yield curves →',exact:true})).toHaveAttribute('href','?page=pricing&units=gdp');
  await expect(page.getByRole('link',{name:'Outlook, assumptions & vintages →',exact:true})).toHaveAttribute('href',/section=outlook/);
@@ -99,10 +96,11 @@ test('shared units change headline and official forecast stocks and follow compo
  await expect(page).toHaveURL(/section=composition/);await expect(page.getByRole('combobox',{name:'Budget history units',exact:true})).toHaveValue('bn');
 });
 
-test('spending and receipt composition compares selected years on consistent scales',async({page,request})=>{
+test('overview composition sits before pricing and compares selected years on consistent scales',async({page,request})=>{
  const data=await(await request.get('data/composition.json')).json();const last=data.history.years.at(-1),first=data.history.years.find((y:{year:string})=>y.year==='2019-20');
  const health=(y:{items:{name:string;pctGdp:number;value:number}[]})=>y.items.find(r=>r.name==='Health')!;
- await page.goto('./?page=fiscal&section=composition');const section=page.locator('.overview-composition');await expect(section).toBeVisible();
+ await page.goto('./');const section=page.locator('.overview-composition');await expect(section).toBeVisible();
+ const positions=await page.evaluate(()=>['.overview-position-pair','.overview-composition','.overview-deficits','.overview-market'].map(s=>document.querySelector(s)!.getBoundingClientRect().top));expect(positions[0]).toBeLessThan(positions[1]);expect(positions[1]).toBeLessThan(positions[2]);expect(positions[2]).toBeLessThan(positions[3]);
  const row=section.locator('li').filter({hasText:'Health'});await expect(row).toContainText(health(last).pctGdp.toFixed(2));
  await section.getByRole('button',{name:'Change between years',exact:true}).click();await expect(section.getByRole('combobox',{name:'Compare from',exact:true})).toHaveValue('2019-20');await expect(row).toContainText((health(last).pctGdp-health(first).pctGdp).toFixed(2));
  await section.getByRole('combobox',{name:'Composition units',exact:true}).selectOption('bn');await expect(row).toContainText(((health(last).value-health(first).value)/1000).toFixed(2));
@@ -137,17 +135,25 @@ test('deficit decompositions reconcile and distinguish forecasts and structural 
 });
 
 test('historical pensions and separate debt transactions work across units and dates',async({page})=>{
- await page.goto('./?page=fiscal&section=composition&ocTo=2003-04&units=bn');
+ await page.goto('./?ocTo=2003-04&units=bn');
  const detail=page.locator('.social-protection-detail');
  await expect(detail.getByRole('row').filter({hasText:'Pensions'})).toContainText('56.04');
  await expect(detail).toContainText('PESA 2009');
  await detail.getByText('Social protection history · 2003–04 onward',{exact:true}).click();
  await expect(detail.locator('.recharts-line-curve')).toHaveCount(4);
- await page.goto('./?page=fiscal&section=composition&ocMode=change&ocFrom=2019-20&ocTo=2025-26&units=gdp');
+ await page.goto('./?ocMode=change&ocFrom=2019-20&ocTo=2025-26&units=gdp');
  await expect(detail.getByRole('row').filter({hasText:'Pensions'})).toContainText('0.08');
  await expect(detail).toContainText('Revisions / rounding');
  const spending=page.getByRole('article',{name:'Spending by function',exact:true});
  await expect(spending.locator('.bar-label').filter({hasText:'Public debt transactions'})).toBeVisible();
  await expect(spending.locator('.bar-label').filter({hasText:'Other general public services'})).toBeVisible();
  await expect(spending.locator('.bar-label').filter({hasText:/^General public services/})).toHaveCount(0);
+});
+
+test('composition change can be read as a waterfall from one total to the other',async({page})=>{
+ await page.goto('./?ocMode=waterfall&ocFrom=2019-20&units=gdp');
+ const spending=page.getByRole('article',{name:'Spending by function',exact:true});
+ await expect(spending.locator('.waterfall-list li').first()).toContainText('2019-20 total');
+ await expect(spending.locator('.waterfall-list li').last()).toContainText('total');
+ await expect(page.locator('.fs-verdict')).toHaveCount(0);
 });
