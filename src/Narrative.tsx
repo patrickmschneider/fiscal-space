@@ -2,7 +2,8 @@ import {type ReactNode} from 'react';
 import {ChartPanel,DataTable,Disclosure,SourceLine,type ChartRow} from './components';
 import {annualComparisonDate,bn,fmt,total,flowValue,gdpAt,dateLabel,fiscalStart,type Bundle,type Source} from './data';
 import {Deficits,DeficitHeadline} from './Deficits';
-import {OverviewComposition} from './OverviewComposition';
+import {buildTracker} from './headroom';
+import {ChangesSection,DebtDynamicsSection,Part,SensitivityBars,TrackerBanner,trackerSentence} from './Tracker';
 import {latestVintage,overviewForecastRows,forecastHistoryRows,impulse,forecastBridge,canCompareProfilePeriod,type Vintage,type OutlookRow} from './policyData';
 
 import {DatePicker} from './DatePicker';
@@ -47,20 +48,26 @@ export function Briefing({bundle}:{bundle:Bundle}){
  const forecastNote=vintage?`${vintage.label} OBR forecast. Dashed lines join annual financial-year-end anchors from the vintage’s outturn baseline; they are not monthly forecasts. Later actual observations overlap the original forecast, without rebasing it. Shading begins at the forecast publication date.`:'';
  const today=new Date().toISOString().slice(0,10);const next=(bundle.policy?.monitor?.calendar||[]).filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];
  const profile=bundle.forecast;const profilePoint=profile.status==='available'&&profile.fiscalYear?.startsWith(String(fiscalStart(fiscal.asOf)))?profile.cumulative?.filter(r=>r.period<=fiscal.asOf&&canCompareProfilePeriod(r.period,profile.vintage)&&total(fiscal.observations,'borrowing',r.period,'ytd')!=null).at(-1):undefined;const surprise=profilePoint?flowValue(total(fiscal.observations,'borrowing',profilePoint.period,'ytd')!-profilePoint.value*1000,profilePoint.period,unit,fiscal.gdp):null;
- return <div className="editorial overview"><header className="briefing-lead"><p className="eyebrow">UK PUBLIC FINANCES · {dateLabel(fiscal.asOf)}</p><h1 className="sr-only">UK fiscal dashboard</h1><p className="lead-sentence">{headlineBorrowing?`Borrowing was ${headlineBorrowing} over the 12 months to ${dateLabel(fiscal.asOf)}`:'Rolling annual borrowing is unavailable'}{delta!=null?`, ${unit==='bn'?`£${fmt(Math.abs(delta))}bn`:`${fmt(Math.abs(delta))} percentage points`} ${delta>=0?'higher':'lower'} than a year earlier`:''}. {headlineDebt?`Debt stood at ${headlineDebt} at ${dateLabel(fiscal.asOf)}.`:''}</p></header>
+ const tracker=buildTracker(bundle);const calendarFiscal=(bundle.policy?.monitor?.calendar||[]).filter(e=>e.date>=today&&/budget|statement|fiscal outlook|efo/i.test(`${e.event} ${e.category||''}`)).sort((a,b)=>a.date.localeCompare(b.date))[0];const watch=bundle.policy?.monitor?.undatedWatch?.[0];const nextFiscal=calendarFiscal?{event:calendarFiscal.event,when:dateLabel(calendarFiscal.date)}:watch?{event:watch.event,when:(watch as {expectedWindow?:string}).expectedWindow||''}:undefined;
+ const positionSentence=`${headlineBorrowing?`Borrowing was ${headlineBorrowing} over the 12 months to ${dateLabel(fiscal.asOf)}`:'Rolling annual borrowing is unavailable'}${delta!=null?`, ${unit==='bn'?`£${fmt(Math.abs(delta))}bn`:`${fmt(Math.abs(delta))} percentage points`} ${delta>=0?'higher':'lower'} than a year earlier`:''}. ${headlineDebt?`Debt stood at ${headlineDebt} at ${dateLabel(fiscal.asOf)}.`:''}`;
+ return <div className="editorial overview"><header className="briefing-lead"><p className="eyebrow">UK PUBLIC FINANCES · {dateLabel(fiscal.asOf)}</p><h1 className="sr-only">UK fiscal dashboard</h1>
+ {tracker&&<TrackerBanner tracker={tracker} next={nextFiscal}/>}
+ <p className="lead-sentence">{tracker?trackerSentence(tracker):positionSentence}</p>
+ <nav className="reading-guide fs-guide" aria-label="Sections"><span>On this page</span><a href="#part-position">1. Where the public finances are</a><a href="#part-changes">2. What has changed since the forecast</a><a href="#part-debt">3. Debt and the deficit</a><a href="#part-risks">4. Risks and markets</a></nav></header>
+ <Part n={1} id="part-position" title="Where the public finances are" intro={positionSentence}/>
  <div className="overview-tools"><UnitChoice unit={unit} setUnit={setUnit}/><ViewLink href="?page=fiscal&section=composition">Spending & tax composition →</ViewLink><ViewLink href="?page=pricing">Compare yield curves →</ViewLink><ViewLink href="?page=fiscal&section=outlook">Outlook, assumptions & vintages →</ViewLink></div>
  {vintage&&<p className="small">Black dashed paths: OBR {vintage.label}, published {dateLabel(vintage.publicationDate)}. Shading begins on its publication date. Coloured solid lines include later outturns.</p>}<div className="composition-grid overview-position-pair"><ChartPanel id="overview-position" title="Spending and receipts" summary="Actual rolling 12-month totals; dashed OBR annual forecasts. The gap is public-sector net borrowing." rows={topRows} shadeForecast forecastPublicationDate={vintage?.publicationDate} lines={[{key:'spending',label:'Total managed expenditure',colour:'#a76232'},{key:'receipts',label:'Current receipts',colour:'#175d65'},{key:'spendingForecast',label:'Spending · OBR forecast',colour:'#151515',dash:'9 5',connectNulls:true},{key:'receiptsForecast',label:'Receipts · OBR forecast',colour:'#151515',dash:'9 4 2 4',connectNulls:true}]} unit={unit==='bn'?'£bn':'% GDP'} xLabel="Period ending (YYYY-MM)" sources={[...fiscal.sources.slice(0,1),...(fiscal.gdp?.sources||[]),...(bundle.policy?.outlook?.sources?.slice(0,1)||[])]} note={`PSNB excluding public sector banks. Actual flow ratios use the latest four-quarter GDP ending on or before the flow endpoint; forecast flows use OBR financial-year GDP. ${forecastNote}`}/><ChartPanel id="overview-debt" title="Total public-sector net debt" summary={`${dateLabel(fiscal.asOf)} · ${fmt(latest?.debtPct as number)}% of GDP. Public sector excluding banks; net debt, not gross gilt principal.`} rows={topRows} shadeForecast forecastPublicationDate={vintage?.publicationDate} lines={[{key:'debt',label:'Public-sector net debt',colour:'#175d65'},{key:'debtForecast',label:'Debt · OBR forecast',colour:'#151515',dash:'9 5',connectNulls:true}]} unit={unit==='bn'?'£bn':'% GDP'} xLabel="Month (YYYY-MM)" sources={[...fiscal.sources,...(bundle.policy?.outlook?.sources?.slice(0,1)||[])]} note={`Official ONS net-debt stock and GDP ratio; OBR debt ratios use centred end-March GDP. ${forecastNote}`}/></div><p className="small">Why the small wiggles? The rolling spending and receipts totals change each month, while their GDP denominator updates only quarterly. The quarterly steps create some of the sawtooth pattern; these are not all new policy changes.</p>
+ {tracker&&<><Part n={2} id="part-changes" title="What has changed since the forecast" intro="The fiscal rules are judged at each OBR forecast; between forecasts, news moves the margin."/><ChangesSection t={tracker}/></>}
+ {surprise!=null&&profilePoint&&<p className="small"><ViewLink href="?page=fiscal&section=position">Inspect the current-year comparison with the OBR profile →</ViewLink></p>}
+ <Part n={3} id="part-debt" title="Debt and the deficit" intro="Whether debt is on a falling path, and where the deficit comes from."/>
+ {tracker&&<DebtDynamicsSection t={tracker}/>}
  <section className="overview-deficit-origins" aria-labelledby="deficit-origins-title"><div className="section-heading"><h2 id="deficit-origins-title">Where the deficit comes from</h2></div>
  <DeficitHeadline bundle={bundle}/>
- <OverviewComposition bundle={bundle}/>
  <Deficits bundle={bundle} compact/>
  </section>
+ <Part n={4} id="part-risks" title="Risks and markets" intro="How sensitive the margin is to the economy and markets, and what gilt markets are pricing."/>
+ {tracker&&bundle.policy?.outlook&&<SensitivityBars outlook={bundle.policy.outlook} headroom={tracker.estimateBn}/>}
  <OverviewPricing bundle={bundle}/>
-
-
-
-
- {surprise!=null&&profilePoint&&<p className="small">Borrowing through {dateLabel(profilePoint.period)} is {unit==='bn'?`£${fmt(Math.abs(surprise))}bn`:`${fmt(Math.abs(surprise),2)} percentage points of annual GDP`} {surprise>=0?'above':'below'} the {profile.vintage} monthly profile. <ViewLink href="?page=fiscal&section=position">Inspect the current-year comparison →</ViewLink></p>}
  {next&&<p className="small">Next confirmed release: <ViewLink href={next.source}>{next.event} · {dateLabel(next.date)} ↗</ViewLink>. Calendar checked {dateLabel(bundle.policy!.monitor!.asOf)}.</p>}
  </div>;
 }

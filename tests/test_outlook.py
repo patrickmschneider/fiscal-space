@@ -7,6 +7,7 @@ import copy
 import json
 from pathlib import Path
 import unittest
+ROOT=Path(__file__).resolve().parents[1]
 from unittest.mock import patch
 try:
     from pipeline import outlook
@@ -67,6 +68,13 @@ class OutlookTests(unittest.TestCase):
         self.assertEqual(prior['rows'][2]['bankRate'],3.6)
         self.assertEqual(prior['rows'][1]['netFinancialLiabilitiesPct'],83.1)
         self.assertEqual(prior['rows'][1]['structuralPrimaryBalancePct'],-1.1)
+
+    def test_market_conditioning_window_is_recorded(self):
+        data=json.loads((ROOT/'public/data/outlook.json').read_text()) if (ROOT/'public/data/outlook.json').exists() else None
+        if data is None:self.skipTest('no saved outlook')
+        window=data['marketConditioning']
+        self.assertEqual((window['end'],window['workingDays'],window['vintage']),('2026-01-30',10,data['latestVintage']))
+        self.assertIn('#page=7',window['sourceUrl'])
 
     def test_unexpected_vintage_fails_closed(self):
         texts=json.loads((FIXTURES/'outlook_tables.json').read_text())

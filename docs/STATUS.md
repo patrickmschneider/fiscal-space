@@ -41,7 +41,11 @@ Final checks: production build; 14 frontend unit tests; 43 Python adapter/pipeli
 - Compact normalized vintages and checksum metadata are preserved remotely on `data-history`; original workbooks remain local. The live `deployment.json` identifies the deployed code/data pair; archive `latest.json` can describe an attempted build.
 - Production build flags a large chart-library bundle; acceptable for this personal dashboard, revisit if hosted performance warrants it.
 
-Next: owner review of the simpler dashboard across devices, then close the DMO coverage/discovery gaps. Do not add scenarios, policy tracking, embedding or elaborate design infrastructure yet.
+Next: owner review of the verdict-led overview, then close the DMO coverage/discovery gaps.
+
+## Owner request delivered, 29 September
+
+The owner asked for the overview to carry a pointed message like Monetary Space. The overview now leads with a verdict banner and headroom tracker (see README). Only the gilt-rate effect is counted against the March 2026 headroom; growth, in-year and policy items are shown uncounted until they can be costed defensibly. Debt dynamics use the OBR table's implied effective rate. The composition comparison moved to Fiscal → Composition. Checks: 42 vitest, 76 Python, 22 Chromium/WebKit hosted tests. Note for local hosted runs: WebKit refuses port 4190, so serve `.preview` on another port (e.g. 4191).
 
 ## Owner refinements delivered, 9 September
 
