@@ -38,9 +38,8 @@ The repository includes fitted Bank of England curve outputs for this non-commer
 
 ## Redesign coverage and maintenance
 
-- Overview: organised as an argument. A verdict banner (rules at risk / headroom thin / eroding / on track / room for manoeuvre) with headroom and debt dials, then four parts: where the public finances are; what has changed since the last OBR forecast (the headroom tracker); whether debt is stabilising (r − g and the debt-stabilising primary balance from the OBR table); and what could move it (OBR ready-reckoners, market pricing).
-- Headroom tracker (`src/headroom.ts`): starts from the OBR current-budget headroom and counts only the gilt-rate effect, the change in mean 1–20y spot yields since the OBR's market-conditioning window times the OBR ready-reckoner. Growth news, the in-year borrowing surprise and announced policy are shown but not counted. It is an indicative estimate, not an OBR forecast; the conditioning window is recorded in `outlook.json` (`marketConditioning`) and must be updated with each EFO.
-- Fiscal → Composition now opens with the pre-pandemic composition comparison that used to sit on the overview.
+- Overview: dated rolling-year borrowing and debt, long spending/receipts history, pre-pandemic composition changes, compact forecast paths and market pricing. Composition changes can be read as bars or as a waterfall from one year's total to the other (seven largest changes, the rest grouped).
+- Outlook includes a debt-dynamics table (effective interest rate vs nominal growth, and the debt-stabilising primary balance) computed from a single OBR vintage.
 - Fiscal: rolling/monthly/YTD position; composition snapshots, comparable history and reconciled two-year contributions; March 2026 EFO and a **labelled rounded reconstruction** of November 2025. Formal November rule assessments remain distinct from the March current-budget update. New EFO releases require adapter maintenance.
 - Pricing: nominal and real gilt spot curves, RPI breakevens and matched-date changes, with shared comparison calendars.
 - Debt & financing: gilt stock, maturity concentration, upcoming sales, redemptions and published auction results. Contractual amounts and auction statistics retain natural units.
