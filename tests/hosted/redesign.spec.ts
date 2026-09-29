@@ -144,6 +144,7 @@ test('historical pensions and separate debt transactions work across units and d
  await page.goto('./?ocMode=change&ocFrom=2019-20&ocTo=2025-26&units=gdp');
  await expect(detail.getByRole('row').filter({hasText:'Pensions'})).toContainText('0.08');
  await expect(detail).toContainText('Revisions / rounding');
+ await page.goto('./?ocMode=snapshot&ocTo=2025-26&units=gdp');
  const spending=page.getByRole('article',{name:'Spending by function',exact:true});
  await expect(spending.locator('.bar-label').filter({hasText:'Public debt transactions'})).toBeVisible();
  await expect(spending.locator('.bar-label').filter({hasText:'Other general public services'})).toBeVisible();
@@ -151,7 +152,7 @@ test('historical pensions and separate debt transactions work across units and d
 });
 
 test('composition change can be read as a waterfall from one total to the other',async({page})=>{
- await page.goto('./?ocMode=waterfall&ocFrom=2019-20&units=gdp');
+ await page.goto('./?ocMode=change&ocFrom=2019-20&units=gdp');
  const spending=page.getByRole('article',{name:'Spending by function',exact:true});
  await expect(spending.locator('.waterfall-list li').first()).toContainText('2019-20 total');
  await expect(spending.locator('.waterfall-list li').last()).toContainText('total');

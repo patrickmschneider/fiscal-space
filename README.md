@@ -38,7 +38,7 @@ The repository includes fitted Bank of England curve outputs for this non-commer
 
 ## Redesign coverage and maintenance
 
-- Overview: dated rolling-year borrowing and debt, long spending/receipts history, pre-pandemic composition changes, compact forecast paths and market pricing. Composition changes can be read as bars or as a waterfall from one year's total to the other (seven largest changes, the rest grouped).
+- Overview: dated rolling-year borrowing and debt, long spending/receipts history, pre-pandemic composition changes, compact forecast paths and market pricing. Composition changes are shown as a waterfall from one year's total to the other (seven largest changes, the rest grouped); side-by-side change bars remain in the full composition history.
 - Outlook includes a debt-dynamics table (effective interest rate vs nominal growth, and the debt-stabilising primary balance) computed from a single OBR vintage.
 - Fiscal: rolling/monthly/YTD position; composition snapshots, comparable history and reconciled two-year contributions; March 2026 EFO and a **labelled rounded reconstruction** of November 2025. Formal November rule assessments remain distinct from the March current-budget update. New EFO releases require adapter maintenance.
 - Pricing: nominal and real gilt spot curves, RPI breakevens and matched-date changes, with shared comparison calendars.
