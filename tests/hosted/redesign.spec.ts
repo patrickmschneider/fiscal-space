@@ -92,7 +92,14 @@ test('shared units change headline and official forecast stocks and follow compo
  await page.getByRole('link',{name:'Spending & tax composition →',exact:true}).click();
  await expect(page.getByRole('combobox',{name:'Budget history units',exact:true})).toHaveValue('bn');
  await page.getByRole('combobox',{name:'Budget breakdown',exact:true}).selectOption('detailed');await expect(page.getByRole('combobox',{name:'Composition financial year',exact:true}).locator('option')).toHaveCount(5);
- await page.goto('./?page=explore&view=series&units=bn');await page.getByRole('link',{name:'Budget composition',exact:true}).click();
+ await page.goto('./?page=explore&view=series&units=bn');
+ const compositionLink=page.getByRole('link',{name:'Budget composition',exact:true});
+ await expect(compositionLink).toHaveAttribute('href','?page=fiscal&section=composition&units=bn');
+ // Scrolling shrinks the sticky header. Let that layout change finish before
+ // click() checks stability, so WebKit releases the mouse on the same link.
+ await compositionLink.scrollIntoViewIfNeeded();
+ await expect(page.locator('.site-header')).toHaveClass(/\bcompact\b/);
+ await compositionLink.click();
  await expect(page).toHaveURL(/section=composition/);await expect(page.getByRole('combobox',{name:'Budget history units',exact:true})).toHaveValue('bn');
 });
 
