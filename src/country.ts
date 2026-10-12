@@ -62,3 +62,9 @@ export function local<T>(ukValue:T,auValue:T):T{return C.id==='au'?auValue:ukVal
 /** Calendar month that ends the financial year: 3 (March) or 6 (June). */
 export const fyEndMonth=(C.fyStartMonth+10)%12+1;
 export const fyEndSuffix=`-${String(fyEndMonth).padStart(2,'0')}`;
+
+/** Both editions are published together: the UK at the site root and Australia beneath it at au/. */
+export const EDITIONS:{id:CountryId;label:string;path:string}[]=[
+ {id:'uk',label:'UK',path:COUNTRY==='uk'?'./':'../'},
+ {id:'au',label:'Australia',path:COUNTRY==='uk'?'au/':'./'},
+];
