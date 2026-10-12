@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "group": "composition",
+  "module": "pipeline/au/composition.py",
+  "adapter": "fetch_composition",
+  "validator": "validate_composition",
+  "output": "public-au/data/composition.json",
+  "composition": {
+    "description": "Spending by purpose (COFOG-A) and revenue by type, general government. Default all levels consolidated; Commonwealth general government as a separate alternative under levels.commonwealth.",
+    "sources": [
+      {
+        "id": "abs-gfs-annual",
+        "landingUrl": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/latest-release",
+        "discovery": "Scrape latest-release page for 55120DO021_YYYYYY.xlsx and 55120DO002_YYYYYY.xlsx; both must share one reference year.",
+        "downloadUrls": {
+          "allLevels": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/2024-25/55120DO021_202425.xlsx",
+          "commonwealth": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/2024-25/55120DO002_202425.xlsx"
+        },
+        "tables": {
+          "Table_1": "GG operating statement (taxation revenue, non-tax revenue, total GFS revenue)",
+          "Table_4": "GG expenses by purpose (COFOG-A divisions; Commonwealth table also shows public debt transactions and health/education groups)"
+        },
+        "format": "xlsx, ABS formatted tables; years in row 5, $m in row 6; release date in row 3",
+        "publicationDate": "2026-04-21",
+        "nextRelease": "2027-04-20 (inferred from catalogue)",
+        "latestObservation": "2024-25",
+        "history": "2015-16 to 2024-25 (rolling 10-year window per release)",
+        "frequency": "annual",
+        "unit": "A$ million, current prices",
+        "basis": "ABS GFS (GFSM 2014-aligned AGFS15), accrual",
+        "licence": {
+          "name": "Creative Commons Attribution 4.0 International",
+          "url": "https://www.abs.gov.au/website-privacy-copyright-and-disclaimer"
+        },
+        "series": {
+          "divisions": [
+            "General public services",
+            "Defence",
+            "Public order and safety",
+            "Economic affairs",
+            "Environmental protection (output name: Environment protection)",
+            "Housing and community amenities",
+            "Health",
+            "Recreation, culture and religion",
+            "Education",
+            "Social protection",
+            "Transport"
+          ],
+          "totalExpenses": "Total Expenses",
+          "publicDebtTransactions": "Commonwealth only: General public services > Public debt transactions",
+          "revenue": [
+            "Taxation revenue",
+            "Current grants and subsidies",
+            "Sales of goods and services",
+            "Interest income",
+            "Dividend income",
+            "Royalty income",
+            "Other revenue",
+            "Total GFS revenue"
+          ]
+        }
+      },
+      {
+        "id": "abs-taxation-revenue",
+        "landingUrl": "https://www.abs.gov.au/statistics/economy/government/taxation-revenue-australia/latest-release",
+        "discovery": "Scrape latest-release page for 55060DO001_YYYYYY.xlsx and 55060DO002_YYYYYY.xlsx (formerly cat. 5506.0).",
+        "downloadUrls": {
+          "byLevel": "https://www.abs.gov.au/statistics/economy/government/taxation-revenue-australia/2024-25/55060DO001_202425.xlsx",
+          "summary": "https://www.abs.gov.au/statistics/economy/government/taxation-revenue-australia/2024-25/55060DO002_202425.xlsx"
+        },
+        "tables": {
+          "55060DO002 Table_2": "Total taxation revenue by sub-category, all levels (used for the all-levels receipts)",
+          "55060DO001 Table_1": "Taxation, Commonwealth Government by detailed tax (used for the Commonwealth receipts)"
+        },
+        "publicationDate": "2026-04-21",
+        "latestObservation": "2024-25",
+        "history": "2015-16 to 2024-25",
+        "frequency": "annual",
+        "unit": "A$ million",
+        "licence": {
+          "name": "Creative Commons Attribution 4.0 International",
+          "url": "https://www.abs.gov.au/website-privacy-copyright-and-disclaimer"
+        },
+        "series": {
+          "named": [
+            "Income taxes levied on individuals",
+            "Income taxes levied on enterprises",
+            "Goods and services tax (GST)",
+            "Taxes on employers payroll and labour force",
+            "Taxes on property",
+            "Taxes on financial and capital transactions",
+            "Excises and levies"
+          ],
+          "otherTaxes": "derived: total taxation less named taxes"
+        }
+      },
+      {
+        "id": "abs-gdp-current-price",
+        "downloadUrl": "https://data.api.abs.gov.au/rest/data/ABS,ANA_AGG,1.0.0/M3.GPM.10.AUS.Q",
+        "downloadHeaders": {
+          "Accept": "application/vnd.sdmx.data+csv"
+        },
+        "code": "A2302467A",
+        "basis": "GDP current prices, original; four quarters Sep..Jun summed per financial year; null unless all four quarters exist",
+        "latestObservation": "2026-Q2",
+        "licence": {
+          "name": "Creative Commons Attribution 4.0 International",
+          "url": "https://www.abs.gov.au/website-privacy-copyright-and-disclaimer"
+        }
+      }
+    ],
+    "validation": [
+      "Eleven COFOG-A divisions + rounding adjustment (|x| <= item count) sum exactly to Total Expenses for every year and level.",
+      "Receipts: ABS total taxation (55060) equals GFS taxation revenue (55120 Table_1) within $2m; named taxes + other taxes = total taxation; tax + non-tax items + rounding = Total GFS revenue.",
+      "Reject non-positive totals, negative items (other than rounding), fewer than 5 years, discontinuous years, mismatched years across views, GDP shares inconsistent with the stored GDP denominators, missing Commonwealth level or incomplete source metadata.",
+      "Commonwealth public debt transactions must lie within general public services."
+    ],
+    "caveats": [
+      "Only 10 years: each release is a rolling ten-year window; older releases are earlier vintages and are not spliced.",
+      "Top-level COFOG-A divisions only (no all-levels groups); Transport is a separate division.",
+      "All-levels table has no public debt transactions line, so debtInterest is omitted for the default view.",
+      "Commonwealth and all-levels figures must never be added: Commonwealth expenses include grants to states that the consolidated view nets out."
+    ]
+  }
+}

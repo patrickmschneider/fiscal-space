@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "draft": "Australian fiscal position/composition sources. Verified by download on 2026-10-12. finance-mfs, fbo-historical and abs-gdp-current-price are implemented in pipeline/au/fiscal.py (groups 'fiscal' and 'forecast'); other entries are research notes for other groups.",
+  "sources": [
+    {
+      "id": "finance-mfs",
+      "landingUrl": "https://data.gov.au/data/dataset/australian-government-general-government-sector-monthly-financial-statements-tables-and-data",
+      "discoveryUrl": "https://data.gov.au/data/api/3/action/package_show?id=australian-government-general-government-sector-monthly-financial-statements-tables-and-data",
+      "downloadUrl": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/1e1e039e-c54d-4c59-973b-7b15cde2ed63/download/6.-aggregates.xlsx",
+      "relatedDownloads": {
+        "operatingStatement": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/c21aa248-ec4c-4b5b-9b1b-6d545a55e399/download/1.-operating-statement.xlsx",
+        "balanceSheet": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/840f704f-8a29-4f2d-bd03-cc3b4000a9d8/download/2.-balance-sheet.xlsx",
+        "cashflowStatement": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/2b0c8c9e-e3eb-4809-ab70-ed2b0cf95b1f/download/3.-cashflow-statement.xlsx",
+        "taxationNotes": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/e5f442b8-af05-43f2-9b6d-bc9217cf3972/download/4.-note-1-and-2.xlsx",
+        "functionStatement": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/e720e678-68cd-4639-8339-e22c0453d319/download/5.-note-3-function-statement.xlsx",
+        "aggregatesBudgetProfile": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/67519e13-bc0e-4ccc-a09b-520bdf19f8ce/download/1.-aggregates-mp.xlsx"
+      },
+      "pdfReleaseUrl": "https://www.finance.gov.au/sites/default/files/2026-10/mfs-july-august-2026.pdf",
+      "format": "xlsx (one sheet per financial year, e.g. '2026-27'; months as columns, items as rows)",
+      "publicationDate": "2026-10-02",
+      "latestObservation": "2026-08 (year to date August 2026)",
+      "frequency": "monthly (July and August published together; no June statement, the June outcome comes from the Final Budget Outcome)",
+      "history": "Aggregates 2000-01 onward (UCB, fiscal balance); cash receipts/payments rows from 2011-12 (blank July/August 2011, so monthly flows from 2011-10); net debt 2007-08 onward. Balance sheet, cashflow and function statements 2005-06 onward.",
+      "unit": "A$ billion in aggregates from 2020-21 (A$ million before); A$ million in statement files",
+      "basis": "Year-to-date cumulative (monthly = difference of YTD columns); cash (UCB) and accrual (fiscal balance) bases; not seasonally adjusted",
+      "scope": "Australian Government (Commonwealth) general government sector only",
+      "licence": {
+        "name": "Creative Commons Attribution 3.0 Australia",
+        "url": "http://creativecommons.org/licenses/by/3.0/au/"
+      },
+      "revisions": "Prior-year sheets reflect the month-by-month figures as published; final annual outcome is in the FBO, not the MFS file.",
+      "missingValues": [
+        "",
+        null
+      ],
+      "series": {
+        "receipts": {
+          "code": "Receipts(b)",
+          "label": "Receipts",
+          "unit": "A$ billion YTD",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: Receipts (cash receipts for operating activities and sales of non-financial assets)"
+        },
+        "payments": {
+          "code": "Payments(c)",
+          "label": "Payments",
+          "unit": "A$ billion YTD",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: Payments (operating, purchases of non-financial assets, principal payments of lease liabilities)"
+        },
+        "underlyingCashBalance": {
+          "code": "Underlying cash balance",
+          "label": "Underlying cash balance",
+          "unit": "A$ billion YTD",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: Underlying cash balance"
+        },
+        "headlineCashBalance": {
+          "code": "Headline cash balance",
+          "label": "Headline cash balance",
+          "unit": "A$ billion YTD",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: Headline cash balance"
+        },
+        "revenue": {
+          "code": "Revenue",
+          "label": "Revenue (accrual)",
+          "unit": "A$ billion YTD",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: Revenue"
+        },
+        "expenses": {
+          "code": "Expenses",
+          "label": "Expenses (accrual)",
+          "unit": "A$ billion YTD",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: Expenses"
+        },
+        "fiscalBalance": {
+          "code": "Fiscal balance",
+          "label": "Fiscal balance",
+          "unit": "A$ billion YTD",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: Fiscal balance (net operating balance less net capital investment)"
+        },
+        "netDebt": {
+          "code": "Net debt(e)",
+          "label": "Net debt",
+          "unit": "A$ billion, end of month",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: Net debt"
+        },
+        "governmentSecurities": {
+          "code": "Government securities",
+          "label": "Government securities (market value)",
+          "unit": "A$ million, end of month",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Balance sheet: Interest bearing liabilities: Government securities. Market value, not the face-value gross debt measure."
+        },
+        "interestBearingLiabilities": {
+          "code": "Total interest bearing liabilities",
+          "label": "Interest bearing liabilities",
+          "unit": "A$ million, end of month",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Balance sheet: Total interest bearing liabilities"
+        },
+        "futureFundEarnings": {
+          "code": "Net Future Fund earnings",
+          "label": "Net Future Fund earnings",
+          "unit": "A$ million YTD",
+          "scope": "Australian Government general government",
+          "sourceTitle": "Aggregates: (less) Net Future Fund earnings, shown 2013-14 to 2019-20; deducted from UCB 2005-06 to 2019-20 (in 2011-12/2012-13 already netted out of 'Underlying Cash Receipts')"
+        }
+      },
+      "validation": [
+        "Values in recent sheets are stored as text; coerce to numbers.",
+        "Columns are YTD except the first (July). The 2000-01 'August' column is a single month, not YTD; treat it as a special case.",
+        "Receipts - payments = underlying cash balance (2013-14 to 2019-20 also less net Future Fund earnings).",
+        "No June column: derive June as FBO annual outcome minus May YTD and label it a residual, or leave June missing.",
+        "Row order and labels change between years (e.g. 2000-07 AAS31 'Revenue(a)'/'Income', 2011-12 'Underlying Cash Receipts'); map by label, not position.",
+        "Units switch from $m to $b in the aggregates file from 2020-21.",
+        "2020-21 to 2022-23 values are rounded to $0.1b; identity tolerance is three rounding units per month.",
+        "Monthly profiles file: column header kinds are ACTUAL* (no profile published), Budget Profile, MYEFO Profile, Revised Budget Profile; each month's profile is added with that month's statement and there is no June. A full 12-month single-vintage profile is therefore never published in this file."
+      ],
+      "implementedBy": {
+        "module": "pipeline/au/fiscal.py",
+        "functions": [
+          "fetch_fiscal",
+          "validate_fiscal",
+          "fetch_forecast",
+          "validate_forecast"
+        ],
+        "outputs": [
+          "public-au/data/fiscal.json",
+          "public-au/data/forecast.json"
+        ]
+      },
+      "discovery": "Resource URLs are discovered on every run from discoveryUrl (CKAN package_show) by resource name: 'Aggregates - ...' (actuals) and 'Aggregates Monthly Profiles - ...' (Budget profile). downloadUrl/relatedDownloads are the URLs seen on 2026-10-12 and are not used by the code.",
+      "outputMapping": {
+        "borrowing": "minus Underlying cash balance (monthly flow, A$m)",
+        "receipts": "Receipts / Underlying Cash Receipts",
+        "spending": "Payments / Underlying Cash Payments",
+        "futureFundEarnings": "Net Future Fund earnings (2013-14 to 2019-20)",
+        "fiscalBalance": "Fiscal balance (accrual)",
+        "debtBillion": "Net debt (A$bn, end of month)",
+        "debtPct": "derived: net debt / ABS four-quarter GDP"
+      }
+    },
+    {
+      "id": "fbo-historical",
+      "landingUrl": "https://archive.budget.gov.au/2025-26/index.htm#fbo",
+      "downloadUrl": "https://archive.budget.gov.au/2025-26/fbo/download/06_appendix_b.docx",
+      "pdfUrl": "https://archive.budget.gov.au/2025-26/fbo/download/06_appendix_b.pdf",
+      "estimatesDownloadUrl": "https://budget.gov.au/content/bp1/download/bp1_bs-11.docx",
+      "format": "DOCX (Word tables; no xlsx/csv). Parse word/document.xml tables. PDF also available.",
+      "publicationDate": "2026-09-28",
+      "latestObservation": "2025-26 outcome (FBO); BP1 Statement 11 of the 2026-27 Budget carries estimates to 2029-30",
+      "frequency": "annual (FBO each September; Budget/MYEFO add estimates)",
+      "history": "Cash receipts/payments/UCB, net debt, AGS face value: 1970-71 onward. Accrual revenue/expenses/fiscal balance: 1996-97 onward. Net worth: 1999-00 onward.",
+      "unit": "A$ million and published % of GDP",
+      "basis": "Financial years ending 30 June; cash and accrual; published % GDP uses Treasury's nominal GDP",
+      "scope": "Australian Government (Commonwealth) general government sector; Table B.9/B.10 also PNFC and non-financial public sector",
+      "licence": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "https://creativecommons.org/licenses/by/4.0/legalcode"
+      },
+      "tables": {
+        "B.1": "Receipts, payments, net Future Fund earnings, underlying cash balance ($m, % GDP, real growth)",
+        "B.2": "Net cash flows from investments in financial assets for policy purposes; headline cash balance",
+        "B.3": "Taxation and non-taxation receipts",
+        "B.4": "Net debt and net interest payments",
+        "B.5": "Face value of Australian Government Securities on issue (gross debt) and interest paid",
+        "B.6": "Accrual revenue, expenses, net operating balance, net capital investment, fiscal balance",
+        "B.7": "Net worth and net financial worth",
+        "B.8": "Accrual taxation and non-taxation revenue",
+        "B.9": "Cash receipts, payments and surplus by institutional sector",
+        "B.10": "Accrual revenue, expenses and fiscal balance by institutional sector",
+        "B.11": "Receipts, payments, UCB per capita (A$ per person; inferred from magnitudes, 2025-26 receipts 27,287)"
+      },
+      "discovery": "The adapter tries the FBO edition for the latest MFS financial year, then the two previous years, using appendixBUrls[fy] if present else appendixBUrlTemplate. Add an appendixBUrls entry each September if the published path differs from the template. The edition used must end in its own year.",
+      "validation": [
+        "Each table is split across two Word tables (to 2009-10, then 2010-11 onward); concatenate them.",
+        "Header rows use merged cells and empty spacer columns; map columns by position per table and check against known values (2025-26 UCB -22,254; net debt 549,969 = 18.8% GDP).",
+        "Rows marked '(e)' are estimates in the Budget edition; exclude them from outturn history."
+      ],
+      "appendixBUrlTemplate": "https://archive.budget.gov.au/{fy}/fbo/download/06_appendix_b.docx",
+      "appendixBUrls": {
+        "2025-26": "https://archive.budget.gov.au/2025-26/fbo/download/06_appendix_b.docx"
+      },
+      "use": "Annual history (fiscal.json 'annual', Tables B.1, B.2, B.4, B.5, B.6) and June residuals (FBO annual less MFS May YTD; June net debt = FBO end-of-year)."
+    },
+    {
+      "id": "fbo-functions",
+      "landingUrl": "https://archive.budget.gov.au/2025-26/index.htm#fbo",
+      "downloadUrl": "https://archive.budget.gov.au/2025-26/fbo/download/05_appendix_a.docx",
+      "format": "DOCX table (Table A.1)",
+      "publicationDate": "2026-09-28",
+      "frequency": "annual",
+      "history": "Two outcome years per edition (2024-25 and 2025-26 outcome, plus 2025-26 Budget estimate). A longer series needs one FBO edition per year.",
+      "unit": "A$ million, current prices",
+      "basis": "Accrual expenses by Australian Government budget function and sub-function (not COFOG)",
+      "scope": "Australian Government general government sector",
+      "licence": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "https://creativecommons.org/licenses/by/4.0/legalcode"
+      },
+      "validation": [
+        "Sub-function labels can wrap across two rows (e.g. 'Assistance to the unemployed and' / 'the sick'); join them.",
+        "Includes general purpose inter-government transactions (GST payments to states), which are not final spending."
+      ]
+    },
+    {
+      "id": "abs-gfs-annual",
+      "landingUrl": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/latest-release",
+      "downloadUrl": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/2024-25/55120DO021_202425.xlsx",
+      "relatedDownloads": {
+        "keyTables": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/2024-25/55120DO094_202425.xlsx",
+        "commonwealthGG": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/2024-25/55120DO002_202425.xlsx",
+        "totalStateGG": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/2024-25/55120DO011_202425.xlsx",
+        "allWorkbooks": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/2024-25/All-workbooks.zip"
+      },
+      "format": "xlsx (ABS formatted tables, sheets Table_1..Table_4; not the ABS time-series layout; no SDMX dataflow in the ABS Data API)",
+      "table": "Table 939 (DO021) General government, all levels: Table_1 operating statement, Table_2 cash flow, Table_3 balance sheet, Table_4 expenses by purpose",
+      "publicationDate": "2026-04-21",
+      "nextRelease": "2027-04-20",
+      "latestObservation": "2024-25",
+      "frequency": "annual",
+      "history": "2015-16 to 2024-25 (10 years) in each per-level workbook",
+      "unit": "A$ million, current prices",
+      "basis": "ABS GFS (IMF GFSM 2014-aligned), accrual; expenses by purpose use COFOG-A divisions",
+      "scope": "Level of government x sector: Commonwealth (130), each state (231-238), total state (239), local, all levels (939); GG, PNFC, NFPS, PFC, total public sector",
+      "licence": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "https://www.abs.gov.au/website-privacy-copyright-and-disclaimer"
+      },
+      "discovery": "File names embed the reference year (55120DOnnn_YYYYYY). Scrape the latest-release page for the DO021/DO094 links.",
+      "series": {
+        "generalPublicServices": {
+          "code": "Table_4: General public services",
+          "label": "General public services",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "GFS expenses by purpose (COFOG-A 01)"
+        },
+        "defence": {
+          "code": "Table_4: Defence",
+          "label": "Defence",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 02"
+        },
+        "publicOrder": {
+          "code": "Table_4: Public order and safety",
+          "label": "Public order and safety",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 03"
+        },
+        "economicAffairs": {
+          "code": "Table_4: Economic affairs",
+          "label": "Economic affairs",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 04 (transport shown separately)"
+        },
+        "environment": {
+          "code": "Table_4: Environmental Protection",
+          "label": "Environmental protection",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 05"
+        },
+        "housing": {
+          "code": "Table_4: Housing and community amenities",
+          "label": "Housing and community amenities",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 06"
+        },
+        "health": {
+          "code": "Table_4: Health",
+          "label": "Health",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 07"
+        },
+        "recreation": {
+          "code": "Table_4: Recreation, culture and religion",
+          "label": "Recreation, culture and religion",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 08"
+        },
+        "education": {
+          "code": "Table_4: Education",
+          "label": "Education",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 09"
+        },
+        "socialProtection": {
+          "code": "Table_4: Social Protection",
+          "label": "Social protection",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 10"
+        },
+        "transport": {
+          "code": "Table_4: Transport",
+          "label": "Transport",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "COFOG-A 11 (Australian-specific division)"
+        },
+        "totalExpenses": {
+          "code": "Table_4: Total Expenses",
+          "label": "Total GFS expenses",
+          "unit": "A$ million",
+          "scope": "General government, all levels (consolidated)",
+          "sourceTitle": "Total expenses"
+        },
+        "netLending": {
+          "code": "Table_1: GFS Net Lending(+)/Borrowing(-)",
+          "label": "Net lending/borrowing",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "GFS net lending (+) / borrowing (-)"
+        },
+        "revenue": {
+          "code": "Table_1: Total GFS revenue",
+          "label": "Total GFS revenue",
+          "unit": "A$ million",
+          "scope": "General government, all levels",
+          "sourceTitle": "Total GFS revenue"
+        }
+      },
+      "validation": [
+        "Eleven purpose divisions sum to total expenses.",
+        "All-levels figures are consolidated: Commonwealth grants to states are netted out. Commonwealth + state columns do not add to the all-levels total (2024-25: Commonwealth 745,029; all levels 1,030,511).",
+        "Commonwealth general public services includes GST and other grants to states; do not compare it with UK functions without consolidating.",
+        "Net debt % GDP by level is in key tables Table_16 (DO094)."
+      ]
+    },
+    {
+      "id": "abs-gfs-quarterly",
+      "landingUrl": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-australia/latest-release",
+      "downloadUrl": "https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-australia/jun-2026/Jun%20Quarter%202026.xlsx",
+      "format": "xlsx (15 tables, formatted)",
+      "publicationDate": "2026-09-01",
+      "latestObservation": "2026-Q2 (June quarter 2026)",
+      "frequency": "quarterly",
+      "history": "Only the latest four quarters in each workbook; a longer history means archiving successive releases (inferred: none found in the ABS Data API)",
+      "unit": "A$ million, current prices, original",
+      "scope": "GG all levels, Commonwealth GG, total state and local GG, each state; Commonwealth and total state balance sheets; key fiscal aggregates (Table 15)",
+      "licence": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "https://www.abs.gov.au/website-privacy-copyright-and-disclaimer"
+      },
+      "validation": [
+        "Previously catalogue 5519.0.55.001; the file name changes every quarter."
+      ]
+    },
+    {
+      "id": "abs-gdp-current-price",
+      "landingUrl": "https://www.abs.gov.au/statistics/economy/national-accounts/australian-national-accounts-national-income-expenditure-and-product/latest-release",
+      "downloadUrl": "https://data.api.abs.gov.au/rest/data/ABS,ANA_AGG,1.0.0/M3.GPM.10.AUS.Q",
+      "downloadHeaders": {
+        "Accept": "application/vnd.sdmx.data+csv"
+      },
+      "alternateDownloadUrl": "https://www.abs.gov.au/statistics/economy/national-accounts/australian-national-accounts-national-income-expenditure-and-product/jun-2026/5206003_Expenditure_Current_Price.xlsx",
+      "format": "SDMX-CSV (ABS Data API); xlsx time series (sheet Data1) as fallback",
+      "code": "A2302467A",
+      "dataset": "5206.0 Table 3 / ABS Data API ANA_AGG key M3.GPM.10.AUS.Q",
+      "frequency": "quarterly",
+      "publicationDate": "2026-09-02",
+      "latestObservation": "2026-Q2",
+      "history": "1959-Q3 onward",
+      "unit": "A$ million",
+      "basis": "GDP, current prices, original (not seasonally adjusted). Sum the four quarters ending June to get financial-year GDP. Dashboard scaling, not an official fiscal ratio.",
+      "licence": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "https://www.abs.gov.au/website-privacy-copyright-and-disclaimer"
+      },
+      "validation": [
+        "SA equivalent A2304418T (SDMX TSEST 20); trend A2304350J.",
+        "FY2025-26 sum (Sep-25..Jun-26) = 2,927,146; FBO net debt 549,969 / that = 18.8%, matching the published ratio.",
+        "Treasury's own nominal GDP is in https://budget.gov.au/content/bp1/download/bp1_s2-data-nominal-GDP.xlsx (forecasts, not used for history)."
+      ],
+      "use": "fiscal.json gdp.observations: four-quarter rolling sums keyed at quarter-end month (from 1999), denominator for derived debtPct (max two-month lag).",
+      "publicationDateNote": "The SDMX-CSV response carries no release date; gdp.releaseDate is null."
+    }
+  ]
+}

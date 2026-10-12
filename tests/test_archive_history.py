@@ -104,3 +104,22 @@ class HistoryTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class AustralianHistoryTests(unittest.TestCase):
+    def test_australian_edition_is_archived_and_restored_beside_the_uk_bundle(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root, destination = Path(temp) / 'project', Path(temp) / 'history'
+            for folder in ('public/data', 'public-au/data'):
+                (root / folder).mkdir(parents=True)
+            for name in (*CORE_GROUPS, 'manifest'):
+                (root / f'public/data/{name}.json').write_bytes(encode({'country': 'uk', 'name': name}))
+                (root / f'public-au/data/{name}.json').write_bytes(encode({'country': 'au', 'name': name}))
+            snapshot = archive(destination, 'b' * 40, root=root)['snapshotId']
+            record = json.loads((destination / f'deployments/{snapshot}.json').read_bytes())
+            self.assertIn('au/fiscal.json', record['files'])
+            self.assertTrue(record['files']['au/fiscal.json']['path'].startswith('releases/au-fiscal-'))
+            (root / 'public-au/data/fiscal.json').write_bytes(encode({'country': 'au', 'name': 'changed'}))
+            restore(destination, snapshot, root=root)
+            self.assertEqual(json.loads((root / 'public-au/data/fiscal.json').read_text())['name'], 'fiscal')
+            self.assertEqual(json.loads((root / 'public/data/fiscal.json').read_text())['country'], 'uk')

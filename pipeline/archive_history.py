@@ -15,7 +15,18 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 CORE_GROUPS = ('fiscal', 'composition', 'forecast', 'debt', 'curve')
 GROUPS = (*CORE_GROUPS, 'outlook', 'reliefs', 'monitor')
-RELEASE = re.compile(r'(' + '|'.join(GROUPS) + r')-([a-f0-9]{64})\.json$')
+RELEASE = re.compile(r'((?:au-)?(?:' + '|'.join(GROUPS) + r'))-([a-f0-9]{64})\.json$')
+# The Australian edition's saved data; archived alongside the UK bundle under an au/ prefix.
+AU_DATA = 'public-au/data'
+AU_FILES = {f'au/{name}.json' for name in (*GROUPS, 'manifest')}
+
+
+def object_stem(name):
+    return name[:-5].replace('/', '-')
+
+
+def saved_path(root, name):
+    return root / AU_DATA / name[3:] if name.startswith('au/') else root / 'public/data' / name
 
 
 def digest(raw):
@@ -72,7 +83,7 @@ def archive(destination, code_sha, migrate_local=False, root=ROOT):
             if metadata_path.exists():
                 metadata_raw = metadata_path.read_bytes()
                 metadata = json.loads(metadata_raw)
-                if metadata.get('group') != group or metadata.get('releaseId') != release_id:
+                if metadata.get('group') != group.removeprefix('au-') or metadata.get('releaseId') != release_id:
                     raise ValueError(f'Local metadata mismatch: {metadata_path.name}')
                 compressed_object(destination, 'metadata',
                                   f'{group}-{release_id}-{digest(metadata_raw)}', metadata_raw)
@@ -87,6 +98,11 @@ def archive(destination, code_sha, migrate_local=False, root=ROOT):
         raw = source.read_bytes()
         files[f'{name}.json'] = compressed_object(destination, 'releases',
                                                    f'{name}-{digest(raw)}', raw)
+    for name in sorted(AU_FILES):
+        source = saved_path(root, name)
+        if source.exists():
+            raw = source.read_bytes()
+            files[name] = compressed_object(destination, 'releases', f'{object_stem(name)}-{digest(raw)}', raw)
     record = {'schemaVersion': 1, 'codeSha': code_sha, 'files': files}
     record_raw = encode(record)
     snapshot_id = digest(record_raw)
@@ -113,12 +129,12 @@ def restore(destination, snapshot_id, root=ROOT, code_sha=None):
     if code_sha is not None and code_sha != record['codeSha']:
         raise ValueError(f"Snapshot requires code SHA {record['codeSha']}")
     expected = {f'{name}.json' for name in (*CORE_GROUPS, 'manifest')}
-    allowed = {f'{name}.json' for name in (*GROUPS, 'manifest')}
+    allowed = {f'{name}.json' for name in (*GROUPS, 'manifest')} | AU_FILES
     if not expected.issubset(record['files']) or not set(record['files']).issubset(allowed):
         raise ValueError('Snapshot does not contain the expected dashboard bundle')
     pending = {}
     for name, ref in record['files'].items():
-        expected_path = f"releases/{name[:-5]}-{ref['sha256']}.json.gz"
+        expected_path = f"releases/{object_stem(name)}-{ref['sha256']}.json.gz"
         if not re.fullmatch(r'[a-f0-9]{64}', ref['sha256']) or ref['path'] != expected_path:
             raise ValueError('Invalid snapshot object path')
         payload = gzip.decompress((destination / ref['path']).read_bytes())
@@ -128,9 +144,9 @@ def restore(destination, snapshot_id, root=ROOT, code_sha=None):
         pending[name] = payload
     # Validate the whole bundle before replacing any file.
     for name, payload in pending.items():
-        atomic(root / 'public/data' / name, payload)
+        atomic(saved_path(root, name), payload)
     for name in allowed - set(record['files']):
-        (root / 'public/data' / name).unlink(missing_ok=True)
+        saved_path(root, name).unlink(missing_ok=True)
     return {'snapshotId': snapshot_id, 'requiredCodeSha': record['codeSha'],
             'restoredFiles': len(pending)}
 

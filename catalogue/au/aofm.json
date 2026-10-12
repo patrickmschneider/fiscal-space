@@ -1,0 +1,303 @@
+{
+  "provider": "Australian Office of Financial Management",
+  "publisher": "Australian Office of Financial Management",
+  "licence": "CC BY 4.0",
+  "licenceUrl": "https://www.aofm.gov.au/copyright",
+  "attribution": "Source: Australian Office of Financial Management. © Commonwealth of Australia, licensed under Creative Commons Attribution 4.0 International (excluding the Coat of Arms, AOFM logo, trademarks and third-party content).",
+  "licenceText": "© Commonwealth of Australia. Australian Office of Financial Management material licensed under Creative Commons Attribution 4.0 International (excluding the Coat of Arms, AOFM logo, trademarks and third-party content). Attribute as: Australian Office of Financial Management.",
+  "landingUrl": "https://www.aofm.gov.au/data-hub",
+  "pages": {
+    "dataHub": "https://www.aofm.gov.au/data-hub",
+    "treasuryBonds": "https://www.aofm.gov.au/securities/treasury-bonds",
+    "treasuryIndexedBonds": "https://www.aofm.gov.au/securities/treasury-indexed-bonds",
+    "treasuryNotes": "https://www.aofm.gov.au/securities/treasury-notes",
+    "forthcoming": "https://www.aofm.gov.au/program/forthcoming-transactions",
+    "issuanceProgram": "https://www.aofm.gov.au/program/issuance-program",
+    "historicalProgram": "https://www.aofm.gov.au/program/historical-issuance-program-updates"
+  },
+  "greenIsins": [
+    "AU3TB0000200",
+    "AU3TB0000291"
+  ],
+  "greenIsinsNote": "The on-issue table has no green flag. Green lines = this list plus any ISIN whose issuance row has a \"Green Bond/\" tender-number prefix (the June 2036 syndication TBSYN37 lacks that prefix, hence the list). Add new green lines here.",
+  "dataHubDiscovery": "Each run scrapes /data-hub and matches link text: \"treasury bonds - issuance.xlsx\", \"Treasury Indexed Bonds - Issuance[_N].xlsx\", \"Treasury Notes - Issuance.xlsx\", \"portfolio_aggregate_-_dealt[_N].xlsx\", \"treasury_indexed_bonds_-_indexation_factors[_N].xlsx\", \"foreign_holdings[_N].xlsx\". Each must match exactly once or the run fails. Dated paths below are research-time observations only.",
+  "access": {
+    "cdn": "Akamai edge (2.22.249.x). Requests lacking browser-like Accept, Accept-Language and Accept-Encoding headers are tarpitted (connection hangs, curl exit 28/92, no HTTP status). A research User-Agent is accepted when those three headers are present.",
+    "requiredHeaders": {
+      "User-Agent": "uk-fiscal-research/0.1 (research tool)",
+      "Accept": "text/html,*/*",
+      "Accept-Language": "en-AU,en;q=0.9",
+      "Accept-Encoding": "gzip, deflate"
+    },
+    "timeoutSeconds": 40,
+    "robots": "https://www.aofm.gov.au/robots.txt (standard Drupal; /sites/default/files and /data-hub not disallowed)",
+    "fileUrlStability": "Data Hub files live at /sites/default/files/<upload-date>/<name>.xlsx. Files are overwritten in place (the 2025-06-20 path held data to 2026-10-09), but a re-upload can change the date folder (e.g. Retail Register Buybacks moved to 2026-09-22). Discover current hrefs by scraping /data-hub on each run; /media/<id> aliases 302-redirect to the current file where an id is known.",
+    "verifiedDate": "2026-10-12",
+    "userAgentNote": "Verified 2026-10-12: the default pipeline User-Agent (contains a URL) and a bare Chrome UA without sec-ch headers are both tarpitted; \"uk-fiscal-research/0.1 (research tool)\" with the three Accept headers returns 200. The adapter overrides the User-Agent per request."
+  },
+  "stock": {
+    "id": "aofm-portfolio-tb",
+    "name": "AOFM Portfolio Aggregate - Treasury Bonds (dealt basis), FaceValue sheet",
+    "url": "https://www.aofm.gov.au/sites/default/files/2025-05-02/portfolio_aggregate_-_treasury_bonds_-_dealt.xlsx",
+    "landingUrl": "https://www.aofm.gov.au/data-hub",
+    "format": "xlsx, wide: header rows 2-6 (Liability/Asset, Currency, Instrument, Maturity, Coupon %), then one row per month-end, one column per line, plus a 'Total AUD Treasury Bonds' column. Sheets: Notes, FaceValue, MarketValue, Delta, Duration, Tenor.",
+    "units": "AUD, full units (not millions); liabilities shown negative; coupon percent per year",
+    "basis": "End-of-month face value outstanding by line, dealt basis (transactions counted on trade date). A settlement-basis twin exists. No ISIN column, so join to ISINs on (maturity, coupon) using the securities pages or the issuance file.",
+    "frequency": "Monthly (month-end)",
+    "history": "June 2003 to latest month-end",
+    "latestObservation": "2026-09-30",
+    "missingValues": "Blank or empty string where a line is not on issue",
+    "revisionBehaviour": "File overwritten in place; archive each download",
+    "companions": [
+      {
+        "id": "aofm-portfolio-tib",
+        "url": "https://www.aofm.gov.au/sites/default/files/2025-05-02/portfolio_aggregate_-_treasury_indexed_bonds_-_dealt.xlsx",
+        "note": "TIB face value is unindexed (capital not uplifted); indexation factors are in a separate file (/media/1263)"
+      },
+      {
+        "id": "aofm-portfolio-tn",
+        "url": "https://www.aofm.gov.au/sites/default/files/2025-05-02/portfolio_aggregate_-_treasury_notes_-_dealt_1.xlsx"
+      },
+      {
+        "id": "aofm-portfolio-all",
+        "url": "https://www.aofm.gov.au/sites/default/files/2025-05-02/portfolio_aggregate_-_dealt_4.xlsx",
+        "note": "All AGS liabilities plus assets and swaps"
+      },
+      {
+        "id": "aofm-tib-indexation",
+        "url": "https://www.aofm.gov.au/sites/default/files/2025-05-02/treasury_indexed_bonds_-_indexation_factors_1.xlsx",
+        "verified": false
+      }
+    ],
+    "note": "Superseded as the stock source by the weekly on-issue tables (which carry ISINs); the all-instrument portfolio_aggregate_-_dealt file is used for stockHistory and the reconciliation."
+  },
+  "weeklyStock": [
+    {
+      "id": "aofm-tb-on-issue",
+      "name": "Treasury Bond lines on issue (HTML table)",
+      "url": "https://www.aofm.gov.au/securities/treasury-bonds",
+      "fields": [
+        "coupon and maturity (text)",
+        "outstanding face value AUD million",
+        "ISIN",
+        "term-sheet link"
+      ],
+      "frequency": "Weekly ('This table is updated weekly')",
+      "latestObservation": "2026-10-09",
+      "note": "29 lines including Green Treasury Bonds June 2034 (AU3TB0000200) and June 2036 (AU3TB0000291). HTML only, no download, and no flag column marking a line as green."
+    },
+    {
+      "id": "aofm-tib-on-issue",
+      "url": "https://www.aofm.gov.au/securities/treasury-indexed-bonds",
+      "latestObservation": "2026-10-09",
+      "note": "6 lines; face value unindexed, AUD million"
+    },
+    {
+      "id": "aofm-tn-on-issue",
+      "url": "https://www.aofm.gov.au/securities/treasury-notes",
+      "latestObservation": "2026-10-09",
+      "note": "11 lines; maturity, AUD million, ISIN"
+    },
+    {
+      "id": "aofm-green-total",
+      "url": "https://www.aofm.gov.au/securities/green-bond-program",
+      "latestObservation": "2026-10-09",
+      "note": "Headline total only ($18.3 billion)"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "aofm-tb-issuance",
+      "name": "Treasury Bonds - Issuance (tender and syndication)",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-06-20/treasury%20bonds%20-%20issuance.xlsx",
+      "format": "xlsx, sheet 'Transactions': row 1 title, row 2 headers, row 3 units, data from row 4; 'Notes' sheet",
+      "fields": [
+        "Date Held",
+        "Tender Number",
+        "Maturity",
+        "Coupon %",
+        "ISIN",
+        "Amount Offered $",
+        "Amount Allotted $",
+        "Amount of Bids $",
+        "Coverage Ratio",
+        "Weighted Average Issue Yield %",
+        "Lowest Accepted Yield %",
+        "Highest Accepted Yield %",
+        "Highest Bid Yield %",
+        "Weighted Average Bid %",
+        "Secondary Market Mid Rate %",
+        "Number of Bids",
+        "Number of Successful Bids",
+        "Number of Bids Accepted in Full",
+        "Settlement Proceeds $",
+        "Date Settled"
+      ],
+      "history": "1982-08-05 to latest (about 1,990 rows)",
+      "latestObservation": "2026-10-09",
+      "quirks": "ISINs padded with trailing spaces. Tender Number prefixes are TB, TBSYN (syndication), 'Green Bond/TB' and 'Green Bond/TBSYN'. Syndication rows hold empty strings for offered, bids and cover. Amounts are full AUD. Offered and allotted can differ because of RBA take-up. Secondary Market Mid Rate comes from Yieldbroker."
+    },
+    {
+      "id": "aofm-tib-issuance",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-07-10/Treasury%20Indexed%20Bonds%20-%20Issuance_0.xlsx",
+      "history": "1985-07-30 to latest",
+      "latestObservation": "2026-10-08",
+      "note": "Same 20 columns. Yields are real yields. Prefixes TIB and TIBSYN; older INDEXTENDER and INDEXTAP"
+    },
+    {
+      "id": "aofm-tn-issuance",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-06-05/Treasury%20Notes%20-%20Issuance.xlsx",
+      "history": "1989-06-07 to latest",
+      "latestObservation": "2026-10-08",
+      "note": "18 columns (no coupon and no secondary mid). Tender Number format NN/YY"
+    },
+    {
+      "id": "aofm-tb-syndications",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-06-06/TB%20Syndications.xlsx",
+      "format": "xlsx, transposed (one column per deal); sheets 'New Bond Syndications' and 'Tap Syndications '",
+      "fields": [
+        "Bond Line",
+        "Pricing Date",
+        "Settlement Date",
+        "Face Value Issued $m",
+        "Bids at Clearing Price $m",
+        "Pricing Reference",
+        "Initial Price Guidance bp",
+        "Final Spread bp",
+        "Yield %",
+        "Curve Extension",
+        "Joint Lead-Managers",
+        "Investor Location %",
+        "Investor Sector %"
+      ],
+      "history": "2011-10-20 to latest",
+      "latestObservation": "2026-08-18 (May 2038 line)"
+    },
+    {
+      "id": "aofm-tib-syndications",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-06-06/TIB%20syndications.xlsx",
+      "verified": false
+    },
+    {
+      "id": "aofm-tb-buybacks",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-06-06/treasury%20bonds%20-%20buybacks.xlsx",
+      "verified": false
+    },
+    {
+      "id": "aofm-tb-conversion-switch",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-06-06/treasury%20bonds%20-%20conversion%20and%20switch.xlsx",
+      "verified": false
+    }
+  ],
+  "calendar": {
+    "id": "aofm-forthcoming",
+    "name": "Forthcoming Transactions",
+    "url": "https://www.aofm.gov.au/program/forthcoming-transactions",
+    "format": "HTML only (no CSV, XML or iCal). /rss.xml exists but contains only a stale 2025 'Beta website alert' item",
+    "fields": [
+      "series (coupon and maturity)",
+      "offered to public $million",
+      "ISIN",
+      "tender date",
+      "bid window AEDT",
+      "settlement date"
+    ],
+    "horizon": "Following week only, announced at midday Friday (Canberra time). TIB section may give only the next tender date.",
+    "observedOn": "2026-10-12: TB tenders 13, 14 and 16 Oct (3.00% Mar-2047 $300m; 4.25% Mar-2036 $700m; 3.25% Apr-2029 $1,000m); TN tender 15 Oct (Jan-2027 and Feb-2027, $1,000m each); next TIB tender 22 Oct 2026",
+    "note": "Past weeks are overwritten. A pipeline must scrape and archive each Friday snapshot."
+  },
+  "programGuidance": [
+    {
+      "id": "aofm-issuance-program",
+      "url": "https://www.aofm.gov.au/program/issuance-program",
+      "publicationDate": "2026-06-26",
+      "kind": "annual-guidance",
+      "note": "Qualitative plan for 2026-27: new May-2038 (done 18 Aug), 2057 and Dec-2038 syndications; TB tenders most weeks; 1-2 TIB tenders a month on Thursdays; at least $25bn of Notes; new monthly-CPI linker in H2 2026-27"
+    },
+    {
+      "id": "aofm-budget-2026-27",
+      "url": "https://www.aofm.gov.au/issuance-program-budget-2026-27",
+      "publicationDate": "2026-05-13",
+      "kind": "budget-guidance",
+      "note": "2026-27 TB issuance around $125bn; TIB tender issuance $2-3bn; 2025-26 TB revised to around $120bn"
+    },
+    {
+      "id": "aofm-historical-program",
+      "url": "https://www.aofm.gov.au/program/historical-issuance-program-updates",
+      "kind": "index",
+      "note": "HTML list back to Budget 2021-22"
+    }
+  ],
+  "ownership": [
+    {
+      "id": "aofm-nonresident",
+      "name": "Non-resident holdings of AGS",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-05-02/foreign_holdings.xlsx",
+      "sheets": [
+        "AGS",
+        "LongTermAGS",
+        "ShortTermAGS"
+      ],
+      "units": "AUD, market value",
+      "frequency": "Quarterly",
+      "history": "2003-06-30 to 2026-06-30",
+      "fields": [
+        "held by non-residents",
+        "total outstanding",
+        "share",
+        "repo outflow, inflow and net",
+        "repo-adjusted share",
+        "change attributed to transactions and to valuation",
+        "LongTermAGS adds RBA holdings and a share excluding the RBA"
+      ],
+      "sources": "ABS, RBA, APRA and AOFM; past periods subject to revision"
+    },
+    {
+      "id": "aofm-register",
+      "name": "Public Register of Government Borrowings",
+      "url": "https://www.aofm.gov.au/sites/default/files/2025-05-02/register_of_government_borrowing.xlsx",
+      "sheets": [
+        "Holdings_FaceValue",
+        "Holdings_Proportion"
+      ],
+      "units": "AUD face value; percent",
+      "frequency": "Monthly",
+      "history": "2009-12-31 to 2026-09-30",
+      "note": "Beneficial ownership by region; about 50% is 'Custodian and nominee companies' (unidentified). Also covers Commonwealth-guaranteed state securities."
+    }
+  ],
+  "availability": {
+    "stock": "available: weekly on-issue tables with ISINs for Treasury Bonds, Treasury Indexed Bonds and Treasury Notes",
+    "uplifted": "derived: TIB indexed capital value = face value x Kt/100 using the AOFM Kt factor for the next coupon date",
+    "auctions": "available: every AOFM tender and syndication for the last five years in auctions; full history (TB from 1982, TIB from 1985, TN from 1989) in auctionHistory",
+    "postAuction": "not applicable: the AOFM has no post-auction option facility",
+    "calendar": "partial: AOFM announces the following week only (Friday midday Canberra time); earlier weeks are overwritten at source. Syndication windows in the issuance program are kept as text in issuanceProgram, not as dated operations",
+    "ownership": "available: quarterly non-resident share of AGS (market value) in foreignHoldings",
+    "discoveryRequired": true
+  },
+  "definitions": {
+    "stock": "Australian Government Securities (Treasury Bonds incl. Green Treasury Bonds, Treasury Indexed Bonds and Treasury Notes) on issue, AUD million face value. Includes holdings by the RBA. Not general government gross or net debt, and not market value.",
+    "type": "type follows the UK schema: conventional (nominal Treasury Bonds and Treasury Notes) or index-linked (Treasury Indexed Bonds). instrument gives the AOFM instrument name; green marks Green Treasury Bonds.",
+    "coupon": "Annual coupon percentage of face value. Treasury Notes are discount securities and carry couponPct 0.",
+    "maturity": "Contractual maturity of face value. TIB redemption depends on CPI through the indexation factor; no future indexation is forecast.",
+    "uplifted": "Nominal lines: equal to face value. TIBs: DERIVED face value x Kt/100, where Kt is the AOFM capital indexation factor applying at the next coupon date after asOf. Not market value.",
+    "auctionAmounts": "AUD million (AOFM publishes full dollars). Offered is the amount offered to the public; allotted can differ (e.g. RBA take-up). Syndications have no offered amount, bids or cover.",
+    "auctionYield": "Weighted average issue yield: nominal for Treasury Bonds and Notes, real for Treasury Indexed Bonds; syndication rows carry the syndication pricing yield. Multiple-price tenders.",
+    "cover": "AOFM coverage ratio = bids / amount offered.",
+    "tail": "DERIVED: highest accepted yield minus weighted average issue yield, in basis points. Not published by the AOFM as a tail.",
+    "secondaryMid": "AOFM-published secondary market mid rate at the time of the tender (Yieldbroker).",
+    "calendar": "Forthcoming Transactions snapshot: announced tenders with size and ISIN; a TIB line may be given only as a date (status planned, size null).",
+    "foreignHoldings": "Share of AGS on issue held by non-residents, market value basis, quarterly (ABS/RBA/APRA/AOFM compilation); repo-adjusted share also given. Past periods are revised.",
+    "stockHistory": "Month-end face value (dealt basis) of AUD Treasury Bonds, TIBs (capital unindexed) and Treasury Notes from the AOFM Portfolio Aggregate; liabilities sign-flipped to positive."
+  },
+  "notes": [
+    "All money values are AUD million unless a field name says otherwise.",
+    "asOf is the date of the weekly AOFM on-issue tables; if the three instrument tables carry different dates, asOf is the earliest and totalsByInstrument gives each date.",
+    "Treasury Notes are included in the stock (they are AGS) but are short-term cash-management securities.",
+    "TIB upliftedMillion and auction tailBp are derived by this dashboard, not AOFM-published figures.",
+    "stockReconciliation compares the weekly on-issue total with the latest month-end Portfolio Aggregate plus allotments dealt since month end. A non-zero residual can reflect maturities, buybacks or settlement timing; it is informational and does not block publication.",
+    "auctions covers five years; auctionHistory is the full record in compact column form (instrumentCodes maps TB/TIB/TN). Rows with method other (historical taps, panels, conversions) appear only in auctionHistory.",
+    "The calendar is a single weekly snapshot; tenders already held appear in auctions, not in the calendar.",
+    "issuanceProgram.headline amounts are planned gross issuance as worded in the latest Budget or MYEFO notice; null where the wording was not recognised."
+  ]
+}

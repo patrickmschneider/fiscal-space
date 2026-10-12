@@ -10,6 +10,25 @@ The **Publish dashboard** GitHub Actions workflow deploys pushes to `main` and c
 
 The DMO calendar/notices and OBR forecast vintage still require maintenance when new publications appear; the daily job does not eliminate the documented coverage gaps.
 
+## Australian edition
+
+The same app is built a second time for Australia and published beneath the UK site at `/fiscal-space/au/`. It uses the same pages and charts with Australian sources, wording (A$, July–June financial years) and data in `public-au/data/`:
+
+- Fiscal position: Department of Finance monthly financial statements (via data.gov.au), Australian Government general government sector, cash basis; underlying cash balance shown as a deficit. June is derived from the Final Budget Outcome. ABS nominal GDP for ratios.
+- Composition: ABS Government Finance Statistics and Taxation Revenue, general government, all levels of government (consolidated), with a separate Commonwealth-only view. History is the ABS ten-year window.
+- Outlook and deficit decomposition: Budget and MYEFO tables (Budget Paper 1), including Treasury's structural balance. There is no published output gap.
+- Fiscal strategy: Australia has no numerical fiscal rules. The page quotes the Budget's stated objectives with the official paths they refer to, without pass/fail verdicts.
+- Debt & financing: AOFM securities on issue, tender and syndication results since 1982, the one-week forthcoming-transactions page and non-resident holdings.
+- Pricing: RBA F17 zero-coupon nominal curve (0–10 years, published monthly) plus F2 benchmark yields and a 10-year breakeven (nominal minus indexed yield). No official real curve exists.
+- Tax expenditures: Treasury Tax Expenditures and Insights Statement. Treasury publishes no total; the derived sum is labelled.
+
+```sh
+npm run dev:au                       # local Australian edition
+python -m pipeline.refresh --country au [--group debt] [--validate]
+```
+
+Adapters are in `pipeline/au/`, source mappings in `catalogue/au/`. The Budget, MYEFO and TEIS editions are pinned and need adapter review when new editions are published; new vintages are added, not swapped in silently. The AOFM site requires browser-like request headers, and its file links are discovered from the Data Hub on each run. All sources are CC BY (Finance: CC BY 3.0 AU; ABS, Treasury, AOFM, RBA: CC BY 4.0) with attribution in the app and exports.
+
 ## Run locally
 
 Requires Node.js 22.12+ (tested on 24) and npm.

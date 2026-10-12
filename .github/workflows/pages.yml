@@ -46,10 +46,12 @@ jobs:
         run: |
           set +e
           python -m pipeline.refresh
-          status=$?
+          uk=$?
+          python -m pipeline.refresh --country au
+          au=$?
           set -e
-          echo "status=$status" >> "$GITHUB_OUTPUT"
-      - run: python -m pipeline.refresh --validate
+          echo "status=$((uk || au))" >> "$GITHUB_OUTPUT"
+      - run: python -m pipeline.refresh --validate && python -m pipeline.refresh --country au --validate
       - name: Preserve compact data vintages before deployment
         shell: bash
         run: |
@@ -70,7 +72,7 @@ jobs:
           record['codeSha']=os.environ['UK_FISCAL_CODE_SHA']
           Path('public/deployment.json').write_text(json.dumps(record)+'\n')
           PY
-          git add public/data
+          git add public/data public-au/data
           if ! git diff --cached --quiet; then
             git commit -m 'Refresh official dashboard data'
             git push origin HEAD:main

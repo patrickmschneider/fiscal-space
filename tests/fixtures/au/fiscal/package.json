@@ -1,0 +1,70 @@
+{
+ "help": "https://data.gov.au/data/api/3/action/help_show?name=package_show",
+ "success": true,
+ "result": {
+  "name": "australian-government-general-government-sector-monthly-financial-statements-tables-and-data",
+  "metadata_modified": "2026-10-02T05:02:39.745104",
+  "resources": [
+   {
+    "name": "Aggregates - Australian Government general government sector Monthly Financial Statements",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/1e1e039e-c54d-4c59-973b-7b15cde2ed63/download/6.-aggregates.xlsx",
+    "last_modified": "2026-10-02T04:57:16.887670",
+    "format": "XLSX"
+   },
+   {
+    "name": "Income Statement - Australian Government general government sector Monthly Financial Statements",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/c21aa248-ec4c-4b5b-9b1b-6d545a55e399/download/1.-operating-statement.xlsx",
+    "last_modified": "2026-10-02T04:58:28.150077",
+    "format": "excel (.xlsx)"
+   },
+   {
+    "name": "Balance Sheet - Australian Government general government sector Monthly Financial Statements",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/840f704f-8a29-4f2d-bd03-cc3b4000a9d8/download/2.-balance-sheet.xlsx",
+    "last_modified": "2026-10-02T04:59:54.323384",
+    "format": "excel (.xlsx)"
+   },
+   {
+    "name": "Cashflow Statement - Australian Government general government sector Monthly Reporting Team",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/2b0c8c9e-e3eb-4809-ab70-ed2b0cf95b1f/download/3.-cashflow-statement.xlsx",
+    "last_modified": "2026-10-02T05:00:18.857336",
+    "format": "excel (.xlsx)"
+   },
+   {
+    "name": "Notes 1 and 2 Taxation - Australian Government general government sector Monthly Financial Statements",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/e5f442b8-af05-43f2-9b6d-bc9217cf3972/download/4.-note-1-and-2.xlsx",
+    "last_modified": "2026-10-02T05:00:37.066074",
+    "format": "excel (.xlsx)"
+   },
+   {
+    "name": "Note 3 Function Statement - Australian Government general government sector Monthly Financial Statements",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/e720e678-68cd-4639-8339-e22c0453d319/download/5.-note-3-function-statement.xlsx",
+    "last_modified": "2026-10-02T05:00:57.399432",
+    "format": "excel (.xlsx)"
+   },
+   {
+    "name": "Aggregates Monthly Profiles - Australian Government general government sector Monthly Financial Statements",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/67519e13-bc0e-4ccc-a09b-520bdf19f8ce/download/1.-aggregates-mp.xlsx",
+    "last_modified": "2026-10-02T05:01:32.524202",
+    "format": "XLSX"
+   },
+   {
+    "name": "Operating Statement Monthly Profiles - Australian Government general government sector Monthly Financial Statements",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/bc7c250f-923e-4c29-a18d-d52b2faba09d/download/2.-operating-statement-mp.xlsx",
+    "last_modified": "2026-10-02T05:01:55.926323",
+    "format": "XLSX"
+   },
+   {
+    "name": "Cashflow Statement Monthly Profiles - Australian Government general government sector Monthly Reporting Team",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/9619a54e-bd0b-40f2-8185-ea8c038cf7a8/download/3.-cashflow-statement-mp.xlsx",
+    "last_modified": "2026-10-02T05:02:19.751345",
+    "format": "XLSX"
+   },
+   {
+    "name": "Note 1 and 2 Monthly Profiles - Australian Government general government sector Monthly Reporting Team",
+    "url": "https://data.gov.au/data/dataset/2b690e28-8239-48c6-a71d-2658f37d51d7/resource/9d58f812-cc9a-4425-adb0-7209cbd08fef/download/4.-note-1-and-2-mp.xlsx",
+    "last_modified": "2026-10-02T05:02:39.564651",
+    "format": "XLSX"
+   }
+  ]
+ }
+}

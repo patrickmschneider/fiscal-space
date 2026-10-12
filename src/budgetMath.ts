@@ -1,14 +1,15 @@
 import {total,type Fiscal,type Source} from './data';
+import {fyEndSuffix} from './country';
 export type BudgetItem={name:string;value:number;pctGdp:number|null};
 export type BudgetYear={year:string;total:number;totalPctGdp:number|null;items:BudgetItem[];tme?:number;tmePctGdp?:number;accountingAdjustments?:number;accountingAdjustmentsPctGdp?:number;debtInterest?:number;debtInterestPctGdp?:number};
 export type FunctionalHistory={years:BudgetYear[];basis:string;notes:string[];sources:Source[]};
 export function exactAnnualGdp(fiscal:Fiscal,endpoint:string):number|null{
  const value=fiscal.gdp?.observations.find(r=>r.date===endpoint)?.rollingAnnualMillion;
- return endpoint.endsWith('-03')&&typeof value==='number'&&Number.isFinite(value)&&value>0?value:null;
+ return endpoint.endsWith(fyEndSuffix)&&typeof value==='number'&&Number.isFinite(value)&&value>0?value:null;
 }
 export function annualBudgets(fiscal:Fiscal,view:'economic'|'receipts'):BudgetYear[]{
  const result:BudgetYear[]=[];
- for(const row of fiscal.observations.filter(r=>r.date.endsWith('-03'))){
+ for(const row of fiscal.observations.filter(r=>r.date.endsWith(fyEndSuffix))){
   const endpoint=row.date;const amount=(key:string)=>total(fiscal.observations,key,endpoint,'ytd');
   const denominator=exactAnnualGdp(fiscal,endpoint);
   const pct=(v:number)=>denominator?v/denominator*100:null;

@@ -1,5 +1,6 @@
 import {fmt} from './data';
 import type {OutlookRow,Vintage} from './policyData';
+import {C} from './country';
 
 export type DebtDynamics={year:string;prevYear:string;debtPct:number;prevDebtPct:number;effectiveRate:number;nominalGrowth:number;stabilisingPrimaryPct:number;primaryBalancePct:number};
 type Row=OutlookRow&{debtBn?:number|null};
@@ -19,11 +20,11 @@ export function DebtDynamicsTable({vintage}:{vintage:Vintage}){
  const rows:[string,string,string][]=[
   ['Net debt, % of GDP',`${fmt(d.prevDebtPct)} → ${fmt(d.debtPct)}`,`${d.prevYear} → ${d.year}`],
   ['Effective interest rate on debt (r)',`${fmt(d.effectiveRate,2)}%`,`Net debt interest in ${d.year} ÷ net debt at end-${d.prevYear}`],
-  ['Nominal GDP growth (g)',`${fmt(d.nominalGrowth)}%`,`OBR forecast for ${d.year}`],
+  ['Nominal GDP growth (g)',`${fmt(d.nominalGrowth)}%`,`${C.forecaster} forecast for ${d.year}`],
   ['Debt-stabilising primary balance',`${pp(d.stabilisingPrimaryPct,2)}% of GDP`,'Debt ratio × (r − g) ÷ (1 + g)'],
   ['Forecast primary balance',`${pp(d.primaryBalancePct)}% of GDP`,'Borrowing excluding net interest, sign reversed'],
  ];
- return <><p className="small">Debt falls as a share of GDP when the primary balance exceeds the level that holds it steady; that level rises with the gap between the interest rate on debt and nominal growth. All figures come from the {vintage.label} forecast, so definitions match. The effective rate responds to gilt yields only gradually, as debt is refinanced.</p>
+ return <><p className="small">Debt falls as a share of GDP when the primary balance exceeds the level that holds it steady; that level rises with the gap between the interest rate on debt and nominal growth. All figures come from the {vintage.label} forecast, so definitions match. The effective rate responds to {C.bond} yields only gradually, as debt is refinanced.</p>
   <div className="table-wrap" role="region" aria-label="Debt dynamics" tabIndex={0}><table><thead><tr><th scope="col">{vintage.label}</th><th scope="col" className="num">Value</th><th scope="col">Basis</th></tr></thead>
    <tbody>{rows.map(([a,b,c])=><tr key={a}><th scope="row">{a}</th><td className="num">{b}</td><td>{c}</td></tr>)}</tbody></table></div></>;
 }

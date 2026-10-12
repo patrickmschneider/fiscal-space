@@ -1,6 +1,6 @@
 """Manual refresh. Stage each source group, archive, then atomically promote.
 
-Usage: python3 -m pipeline.refresh [--group fiscal] [--offline] [--validate]
+Usage: python3 -m pipeline.refresh [--country au] [--group fiscal] [--offline] [--validate]
 Failures leave last-good data intact and return nonzero while updating status.
 """
 import argparse
@@ -14,6 +14,10 @@ import requests
 
 ROOT=Path(__file__).resolve().parents[1]
 GROUPS=('fiscal','composition','forecast','debt','curve','outlook','reliefs')
+COUNTRIES=('uk','au')
+# The UK keeps its original paths so existing URLs, archives and tests are unchanged.
+def data_dir(root=ROOT,country='uk'):return Path(root)/('public/data' if country=='uk' else f'public-{country}/data')
+def release_prefix(country):return '' if country=='uk' else f'{country}-'
 
 def stamp():return datetime.now(timezone.utc).isoformat()
 def digest(raw):return hashlib.sha256(raw).hexdigest()
@@ -29,7 +33,7 @@ class Fetcher:
         self.root=Path(root);self.archive=self.root/'data/archive';self.archive.mkdir(parents=True,exist_ok=True)
         self.index_path=self.archive/'index.json';self.offline=offline;self.records=[]
         self.index=json.loads(self.index_path.read_text()) if self.index_path.exists() else {}
-    def __call__(self,url):
+    def __call__(self,url,headers=None):
         if not url.startswith('https://'):raise ValueError('Official data downloads must use HTTPS')
         if self.offline:
             if url not in self.index:raise ValueError(f'No archived input for {url}')
@@ -39,7 +43,7 @@ class Fetcher:
         error=None
         for attempt in range(2):
             try:
-                response=requests.get(url,timeout=(10,45),headers={'User-Agent':'UKFiscalDashboard/0.1 (public research; https://github.com/patrickmschneider/fiscal-space)'})
+                response=requests.get(url,timeout=(10,45),headers={'User-Agent':'UKFiscalDashboard/0.1 (public research; https://github.com/patrickmschneider/fiscal-space)',**(headers or {})})
                 response.raise_for_status();raw=response.content
                 entry={'url':url,'resolvedUrl':response.url,'retrievedAt':stamp(),'sha256':digest(raw),'bytes':len(raw),'contentType':response.headers.get('Content-Type','')}
                 atomic(self.archive/'objects'/entry['sha256'],raw)
@@ -50,9 +54,12 @@ class Fetcher:
                 if not attempt:time.sleep(1)
         raise RuntimeError(f'Official download failed: {url} ({error})')
 
-def validate(group,data):
+def validate(group,data,country='uk'):
     if data.get('schemaVersion')!=1:raise ValueError('Unsupported schemaVersion')
     encode(data) # Reject NaN/Infinity before any publication.
+    if country!='uk':
+        from .au.validate import validate_au
+        return validate_au(group,data)
     if group=='fiscal':
         rows=data.get('observations',[])
         if len(rows)<24:raise ValueError('Insufficient fiscal observations')
@@ -79,20 +86,26 @@ def validate(group,data):
     elif group=='curve':
         if not data.get('curves'):raise ValueError('No validated curve observations')
 
-def promote(group,data,fetcher,root=ROOT,changes=None):
-    validate(group,data)
+def promote(group,data,fetcher,root=ROOT,changes=None,country='uk'):
+    validate(group,data,country)
     # Retrieved times belong in a release record, not a claim that old observations are new.
     raw=encode(data);release=digest(raw)
     archive=Path(root)/'data/archive/releases'
-    atomic(archive/f'{group}-{release}.json',raw)
-    atomic(archive/f'{group}-{release}.metadata.json',encode({'group':group,'releaseId':release,'createdAt':stamp(),'inputs':fetcher.records,'changes':changes}))
-    atomic(Path(root)/f'public/data/{group}.json',raw)
+    name=f'{release_prefix(country)}{group}-{release}'
+    atomic(archive/f'{name}.json',raw)
+    atomic(archive/f'{name}.metadata.json',encode({'group':group,'country':country,'releaseId':release,'createdAt':stamp(),'inputs':fetcher.records,'changes':changes}))
+    atomic(data_dir(root,country)/f'{group}.json',raw)
     return release
 
-def refresh(groups=GROUPS,offline=False,root=ROOT,adapters=None):
-    root=Path(root);path=root/'public/data/manifest.json'
+def au_adapters():
+    from .au import ADAPTERS
+    return ADAPTERS
+
+def refresh(groups=GROUPS,offline=False,root=ROOT,adapters=None,country='uk'):
+    root=Path(root);path=data_dir(root,country)/'manifest.json'
     manifest=json.loads(path.read_text()) if path.exists() else {'schemaVersion':1,'groups':{}}
     if manifest.get('schemaVersion')!=1:raise ValueError('Unsupported manifest schema')
+    if adapters is None and country!='uk':adapters=au_adapters()
     if adapters is None:
         from .fiscal import fetch_fiscal,fetch_composition
         from .dmo import fetch_debt
@@ -108,9 +121,9 @@ def refresh(groups=GROUPS,offline=False,root=ROOT,adapters=None):
         try:
             data=adapters[group](fetcher)
             from .changes import compare_release
-            saved=root/f'public/data/{group}.json'
+            saved=data_dir(root,country)/f'{group}.json'
             changes=compare_release(group,json.loads(saved.read_text()) if saved.exists() else None,data)
-            release=promote(group,data,fetcher,root,changes=changes)
+            release=promote(group,data,fetcher,root,changes=changes,country=country)
             manifest['groups'][group]={'status':'success','outcome':'unchanged' if previous.get('releaseId')==release else 'new','lastChecked':stamp(),'lastSuccess':stamp(),'asOf':data.get('asOf') or data.get('observationDate') or data.get('publicationDate'),'releaseId':release,'mode':'archive replay' if offline else 'source download','changes':changes}
             print(f'{group}: validated and saved',flush=True)
         except Exception as exc:
@@ -123,6 +136,7 @@ def refresh(groups=GROUPS,offline=False,root=ROOT,adapters=None):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--country',choices=COUNTRIES,default='uk')
     parser.add_argument('--group',choices=GROUPS,action='append')
     parser.add_argument('--offline',action='store_true',help='Replay locally archived inputs without networking')
     parser.add_argument('--validate',action='store_true',help='Check saved datasets without modifying them')
@@ -130,7 +144,7 @@ def main():
     if args.validate:
         failed=[]
         for group in groups:
-            try:validate(group,json.loads((ROOT/f'public/data/{group}.json').read_text()));print(f'{group}: valid')
+            try:validate(group,json.loads((data_dir(ROOT,args.country)/f'{group}.json').read_text()),args.country);print(f'{group}: valid')
             except Exception as exc:failed.append(group);print(f'{group}: {exc}')
     else:
         lock=ROOT/'data/archive/refresh.lock';lock.parent.mkdir(parents=True,exist_ok=True)
@@ -138,7 +152,7 @@ def main():
         except FileExistsError:raise SystemExit('Another refresh may be running; see README for stale-lock recovery.')
         try:
             os.write(fd,str(os.getpid()).encode());os.close(fd)
-            failed=refresh(groups,args.offline)
+            failed=refresh(groups,args.offline,country=args.country)
         finally:lock.unlink(missing_ok=True)
     raise SystemExit(1 if failed else 0)
 

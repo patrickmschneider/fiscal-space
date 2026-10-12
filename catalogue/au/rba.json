@@ -1,0 +1,73 @@
+{
+  "provider": "Reserve Bank of Australia",
+  "measure": "Nominal Australian Government zero-coupon yield curve (F17, 0-10y); interpolated 10-year nominal and indexed (real) bond yields (F2); derived 10-year breakeven inflation (nominal minus indexed, yield-to-maturity basis)",
+  "entryUrl": "https://www.rba.gov.au/statistics/tables/",
+  "downloadUrls": [
+    "https://www.rba.gov.au/statistics/tables/csv/f17-yields.csv",
+    "https://www.rba.gov.au/statistics/tables/csv/f2-data.csv"
+  ],
+  "optionalDownloadUrls": {
+    "f17DiscountFactors": "https://www.rba.gov.au/statistics/tables/csv/f17-discount-factors.csv",
+    "f17ForwardRates": "https://www.rba.gov.au/statistics/tables/csv/f17-forward-rates.csv",
+    "f2MonthlyAverages": "https://www.rba.gov.au/statistics/tables/csv/f2.1-data.csv",
+    "f16IndividualBondYields": "https://www.rba.gov.au/statistics/tables/csv/f16-data.csv",
+    "f17Archive1992to2016": "https://www.rba.gov.au/statistics/tables/xls-hist/zcr-analytical-series-hist-1992-2016.xls",
+    "f2DailyArchive1995toMay2013": "https://www.rba.gov.au/statistics/tables/xls-hist/f02dhist.xls",
+    "f17Workbook": "https://www.rba.gov.au/statistics/tables/xls/f17hist.xlsx",
+    "f2Workbook": "https://www.rba.gov.au/statistics/tables/xls/f02d.xlsx"
+  },
+  "series": {
+    "nominalZeroCoupon": {
+      "table": "F17 Yields",
+      "seriesIds": "FZCY25D ... FZCY1000D (40 series used; FZCY0D tracks the cash rate and is dropped; maturity in years = suffix/100)",
+      "maturities": "0 to 10 years in 0.25-year steps",
+      "units": "Percent per annum; continuously compounded (inferred: published discount factors match exp(-y*t) to rounding, mean abs error 0.0001 vs 0.002-0.004 for semi-annual/annual)",
+      "history": "2017-01-03 onward (CSV identical in content to f17hist.xlsx). 1992-2016 archive is legacy .xls: not parsed (needs xlrd, not installed)."
+    },
+    "nominal10y": {
+      "table": "F2",
+      "seriesId": "FCMYGBAG10D",
+      "description": "Yields on Australian government bonds, interpolated, 10 years maturity"
+    },
+    "indexed10y": {
+      "table": "F2",
+      "seriesId": "FCMYGBAGID",
+      "description": "Yields on Australian government indexed bonds, interpolated, 10 years maturity",
+      "history": "current file from 2014-11-20"
+    },
+    "otherNominalBenchmarks": {
+      "table": "F2",
+      "seriesIds": [
+        "FCMYGBAG2D",
+        "FCMYGBAG3D",
+        "FCMYGBAG5D"
+      ]
+    }
+  },
+  "units": "Percent per annum; F17 maturity in years",
+  "frequency": "Business daily observations",
+  "releaseLag": "F17: monthly, first Friday at least 2 business days after month end, 2.00pm AEST (file checked 2026-10-12 published 2026-10-02 with data to 2026-09-30, so lag up to ~5 weeks). F2/F16: weekly on Fridays for daily yields up to 2 business days earlier (file published 2026-10-09 with data to 2026-10-07).",
+  "transformation": "F17 CSV: rows after 'Series ID' header, dd-Mon-yyyy dates, series ID suffix/100 = maturity; drop FZCY0D. Retain every date in the latest ~3 years (3*366 days to latest F17 date) and the last observation of each month back to January 2017 (output ~1.3 MB). F2 CSV from 2017-01-01: columns mapped by series ID; blank cells null; rows with no values dropped. breakeven10y = FCMYGBAG10D - FCMYGBAGID on exactly matching dates only (rounded to 1e-9); no interpolation or date substitution. F2 indexed yield is never subtracted from F17 zero-coupon yields.",
+  "status": "implemented 2026-10-12; live run: F17 to 2026-09-30 (published 2026-10-02), F2 to 2026-10-07 (published 2026-10-09)",
+  "accessEvidence": {
+    "checkedAt": "2026-10-12",
+    "result": "All listed CSV/XLSX/XLS URLs returned HTTP 200 with a project-identified User-Agent; also HTTP 200 with no UA, Python-urllib and curl UAs. robots.txt does not disallow /statistics/."
+  },
+  "validation": "tests/test_au_rba.py on trimmed real CSV fixtures. Validator: >=200 curve dates, sorted unique dates, strictly increasing positive tenors, rates finite within -2..25%, real/breakeven curves empty, asOf = latest curve, benchmark dates sorted unique, benchmarksAsOf = latest benchmark, breakeven10y dates exactly the matched dates and values = nominal10y - indexed10y within 1e-9.",
+  "licenceUrl": "https://www.rba.gov.au/copyright/",
+  "licenceNote": "RBA Copyright and Disclaimer Notice (read 2026-10-12): RBA Material other than Excluded Material is CC BY 4.0. 'Financial Data' (numerical/statistical data other than the Cash Rate) is covered by Section 5: may be used, reproduced and published for personal or commercial use provided no RBA endorsement is implied; third-party-sourced data needs third-party consent. F2, F16 and F17 'Source' rows read 'RBA' only. Table notes say the yields are RBA assessments, not benchmarks, 'intended for academic research purposes', may be revised or withdrawn, and should not be relied on for regulatory or commercial purposes.",
+  "failure": "Keep last verified payload and mark refresh failure; never substitute F16 single-bond YTMs, OIS or fabricated values for the F17 curve.",
+  "attribution": "Source: Reserve Bank of Australia (Statistical Tables F17 and F2), CC BY 4.0",
+  "methodologyUrls": [
+    "https://www.rba.gov.au/publications/rdp/2008/2008-09/data-model.html",
+    "https://www.rba.gov.au/statistics/tables/frequency-statistical-releases.html"
+  ],
+  "interpretation": "No official real (inflation-indexed) zero-coupon curve is published, so a UK-style matched-maturity real/breakeven curve cannot be built from official RBA outputs. The 10-year breakeven is a difference of interpolated yields to maturity on nominal and CPI-indexed bonds (different coupon and compounding conventions, CPI indexation lag), and includes inflation risk and liquidity premia; it is not an inflation forecast. F17 stops at 10 years.",
+  "reuseDecision": null,
+  "output": {
+    "file": "public-au/data/curve.json",
+    "adapter": "pipeline.au.rba.fetch_curve",
+    "validator": "pipeline.au.rba.validate_curve",
+    "fields": "UK curve.json shape (curves; realCurves/breakevenCurves empty) plus AU extensions benchmarks, benchmarkSeries, breakeven10y, breakeven10yBasis, benchmarksAsOf, benchmarksPublicationDate, dailyFrom"
+  }
+}

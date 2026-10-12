@@ -22,4 +22,5 @@ jobs:
       - run: pip install -r requirements.txt
       - run: npm test && npm run test:data
       - run: python -m pipeline.refresh --validate
+      - run: python -m pipeline.refresh --country au --validate
       - run: npm run build

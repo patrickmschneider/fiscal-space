@@ -1,0 +1,240 @@
+[
+  {
+    "id": "au-budget-aggregates",
+    "provider": "Australian Treasury (Budget Paper No. 1)",
+    "measure": "General government sector budget aggregates: underlying cash balance, receipts (tax/non-tax), payments, gross debt, net debt, net interest payments; $b and % of GDP",
+    "source": "BP1 Statement 3 Table 3.1 (DOCX table; no CSV/XLSX of the aggregates table itself)",
+    "entryUrl": "https://budget.gov.au/content/bp1/index.htm",
+    "sampleUrl": "https://budget.gov.au/content/bp1/download/bp1_bs-3.docx",
+    "units": "A$ billion; per cent of GDP",
+    "frequency": "Per budget update (Budget ~May, MYEFO ~Dec, PEFO at elections); FBO for outturn",
+    "vintage": "2026-27 Budget, 12 May 2026 (prelims). Columns: 2024-25 actual, 2025-26 to 2029-30 estimates, 4-year Total, 2036-37 projection (% GDP only)",
+    "releaseDate": "Budget night; parse date from bp1_prelims.docx",
+    "transformations": [
+      "Unzip DOCX, locate w:tbl after heading 'Table 3.1: Australian Government general government sector budget aggregates'",
+      "Map header row years; drop 'Total(a)' column; treat last column as % GDP medium-term projection",
+      "Strip footnote markers (a)-(e) from row labels; parse '1,051.0' style numbers; '-' as negative sign"
+    ],
+    "compatibility": "Underlying cash balance excludes net Future Fund earnings; not comparable with PSNB. Gross debt = face value of AGS on issue; net debt uses market value. Cash basis; accrual equivalents in Table 3.7.",
+    "failure": "Reject if Table 3.1 heading missing, year header not contiguous financial years, row set changes, or non-numeric cells. Keep last verified payload.",
+    "validation": "Verified 2026-10-12: UCB 2025-26 -28.3 / 2026-27 -31.5; gross debt 2026-27 1,051.0 (34.0% GDP); net debt 616.6 (19.9%); net interest 19.9 (0.6%). Live run 2026-10-12: identities payments-receipts=-UCB within $0.15b; $b/GDP vs published % within 0.06pp; Table 3.1 % vs chart data within 0.05pp (max 0.044).",
+    "licence": "CC BY 4.0 (budget.gov.au legal notices; BP1 imprint). Attribute '© Commonwealth of Australia'. Coat of Arms/Budget logo/third-party excluded.",
+    "implementation": {
+      "adapter": "pipeline/au/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-au/data/outlook.json",
+      "status": "implemented",
+      "pinnedUrls": [
+        "https://budget.gov.au/content/bp1/download/bp1_bs-3.docx",
+        "https://archive.budget.gov.au/2025-26/myefo/download/03_Part_3.docx"
+      ],
+      "notes": "Two layouts parsed: Budget (value row + \"Per cent of GDP\" row, Actual/Estimates/Projections groups via gridSpan) and MYEFO (MYEFO/PEFO/Budget sub-rows; MYEFO rows used). Publication date confirmed from bp1_prelims.docx (\"12 May 2026\") and the MYEFO archive page (\"released on Wednesday 17 December 2025\"); otherwise the refresh fails. After the 2027-28 Budget the 2026-27 files move to archive.budget.gov.au and the URLs need updating."
+    }
+  },
+  {
+    "id": "au-budget-chart-data",
+    "provider": "Australian Treasury",
+    "measure": "Budget Papers chart data incl. UCB/receipts/payments/gross & net debt % GDP to 2036-37 (Budget vs prior MYEFO vs 2022 PEFO vs historical), structural budget balance decomposition",
+    "source": "Budget Papers chart data ZIP of XLSX (bp1-bs2..bs10.xlsx, bp3, bp4, wbs) + Statement 5 receipts CSVs",
+    "entryUrl": "https://budget.gov.au/content/downloads.htm",
+    "sampleUrl": "https://budget.gov.au/content/download/chart-data-final.zip",
+    "units": "per cent of GDP (most series); $b for some",
+    "frequency": "Per budget update; MYEFO equivalent e.g. https://archive.budget.gov.au/2025-26/myefo/download/myefo-2025-26-chart-data.zip",
+    "vintage": "2026-27 Budget; sheet 3.4 = UCB, 3.9 = gross debt, 3.12 = net debt, 3.14 = structural budget balance (2016-17 to 2036-37). Sheet numbering differs by edition (MYEFO 2025-26: C3.10 = structural).",
+    "releaseDate": "Budget night",
+    "transformations": [
+      "Select sheet by header text (e.g. 'Structural budget balance'), never by sheet number",
+      "Row 1 is 'Website Chart Data'; row 2 header; columns positional with empty-string cells for absent vintages",
+      "Retain each vintage column (Budget, MYEFO, PEFO, Historical) separately"
+    ],
+    "compatibility": "Chart data are rounded to 0.1 ppt; projections beyond forward estimates are medium-term projections, not forecasts.",
+    "failure": "Reject if expected header strings absent or year column malformed.",
+    "validation": "Verified: sheet 3.14 structural balance -1.6 (2025-26), -1.5 (2026-27), +0.8 (2036-37); UCB 2026-27 -1.0% GDP.",
+    "licence": "CC BY 4.0, © Commonwealth of Australia.",
+    "implementation": {
+      "adapter": "pipeline/au/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-au/data/outlook.json",
+      "status": "implemented",
+      "notes": "Sheets located by caption text in the statement DOCX (\"Chart 3.x: Underlying cash balance\" etc.), restricted to the statement workbook (bp1-bs3 / part-3) and to the sheet that carries both the vintage column and a Historical column (excludes the 3.10/3.11 yield scenarios). Multi-row headers are flattened (group forward-filled). Medium-term years go to vintage.projections. 2022 and 2025 PEFO columns are not imported."
+    }
+  },
+  {
+    "id": "au-structural-balance",
+    "provider": "Australian Treasury",
+    "measure": "Structural budget balance, cyclical factors, temporary fiscal measures (% GDP)",
+    "source": "BP1 Statement 3 Chart 3.14 chart data (XLSX in ZIP); methodology Treasury Working Paper 2013-01",
+    "entryUrl": "https://budget.gov.au/content/bp1/index.htm",
+    "sampleUrl": "https://budget.gov.au/content/download/chart-data-final.zip#bp1-bs3.xlsx!3.14",
+    "units": "per cent of GDP",
+    "frequency": "Per Budget/MYEFO",
+    "vintage": "2026-27 Budget: 2016-17 to 2036-37",
+    "releaseDate": "Budget night",
+    "transformations": [
+      "UCB = structural + cyclical + temporary measures (check identity within 0.1 rounding)"
+    ],
+    "compatibility": "Treasury cash-basis structural balance; not comparable with OBR cyclically-adjusted PSNB. No published output gap series in BP1 data.",
+    "failure": "Reject if identity fails by >0.2 ppt or columns renamed.",
+    "validation": "2025-26: UCB -1.0 = SBB -1.6 + cyclical 0.7 + temp 0 (rounding).",
+    "licence": "CC BY 4.0.",
+    "implementation": {
+      "adapter": "pipeline/au/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-au/data/outlook.json",
+      "status": "implemented",
+      "fields": "structuralBalancePct, cyclicalFactorsPct, temporaryMeasuresPct (published); structuralBorrowingPct = -structural; structuralBorrowingBn and structuralPrimaryBalancePct derived. Identity checked within 0.15pp. History rows from 2016-17 use the 2026-27 Budget estimates."
+    }
+  },
+  {
+    "id": "au-economic-parameters",
+    "provider": "Australian Treasury",
+    "measure": "Nominal GDP levels (Budget vs prior MYEFO) and domestic economic forecasts (real/nominal GDP growth, CPI, WPI, unemployment, terms of trade)",
+    "source": "Nominal GDP XLSX (online only) + BP1 Statement 2 Table 2.2 (DOCX)",
+    "entryUrl": "https://budget.gov.au/content/bp1/index.htm",
+    "sampleUrl": "https://budget.gov.au/content/bp1/download/bp1_s2-data-nominal-GDP.xlsx",
+    "units": "A$ million (nominal GDP level); per cent change, fractions like '2 1/4' (Table 2.2)",
+    "frequency": "Per budget update",
+    "vintage": "2026-27 Budget: nominal GDP 2020-21 to 2036-37; Table 2.2 2024-25 outcome + 2025-26 to 2027-28 forecasts",
+    "releaseDate": "Budget night",
+    "transformations": [
+      "Parse quarter-point fractions ('2 1/4', '- 1/4') to decimals in Table 2.2"
+    ],
+    "compatibility": "Nominal GDP denominator for all %GDP ratios.",
+    "failure": "Reject non-monotonic years or missing Budget column.",
+    "validation": "Nominal GDP 2026-27 = 3,094,000 $m (MYEFO 3,016,000); nominal GDP growth 2026-27 = 4 1/4%.",
+    "licence": "CC BY 4.0.",
+    "implementation": {
+      "adapter": "pipeline/au/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-au/data/outlook.json",
+      "status": "implemented",
+      "notes": "Budget Table 2.2 / MYEFO Table 2.3 (MYEFO sub-columns). realGdpGrowth, nominalGdpGrowth, inflation (CPI through-year June qtr), wagePriceIndexGrowth, gdpDeflatorGrowth, unemploymentRate. Nominal GDP levels from bp1_s2-data-nominal-GDP.xlsx (Budget and MYEFO columns) are the gdpBn denominator."
+    }
+  },
+  {
+    "id": "au-receipts-history",
+    "provider": "Australian Treasury",
+    "measure": "Cash receipts by head of revenue (and accrual revenue), $m and % GDP, 2005-06 to 2029-30",
+    "source": "BP1 Statement 5 Tables 1-4 CSV (online only)",
+    "entryUrl": "https://budget.gov.au/content/bp1/index.htm",
+    "sampleUrl": "https://budget.gov.au/content/bp1/download/bp1_s5-online_t1.csv",
+    "units": "A$ million; per cent of GDP (t2, t4)",
+    "frequency": "Per budget (filename statement number varies: 2025-26 used bp1_s4-online_t1.csv)",
+    "vintage": "2026-27 Budget; '(est)' suffix marks estimates",
+    "releaseDate": "Budget night",
+    "transformations": [
+      "Header '2025-26 (est) ($m)' -> year + is_estimate flag",
+      "Strip UTF-8 BOM/leading space in first column"
+    ],
+    "compatibility": "Cash basis.",
+    "failure": "Reject if header pattern changes.",
+    "validation": "Gross income tax withholding 2026-27 est 331,100 $m.",
+    "licence": "CC BY 4.0."
+  },
+  {
+    "id": "au-historical-fiscal",
+    "provider": "Australian Treasury (BP1 Statement 11) / Parliamentary Budget Office",
+    "measure": "Long-run historical UCB, receipts, payments, net debt, net interest, AGS on issue (Treasury tables from 1970-71); PBO Historical Fiscal Data workbook",
+    "source": "BP1 Statement 11 DOCX tables 11.1-11.11; PBO XLSX 'Historical Fiscal Data: 2026-27 Budget'",
+    "entryUrl": "https://www.pbo.gov.au/publications-and-data/data-and-tools/data-portal/historical-fiscal-data",
+    "sampleUrl": "https://budget.gov.au/content/bp1/download/bp1_bs-11.docx",
+    "units": "A$ million; per cent of GDP",
+    "frequency": "Per budget",
+    "vintage": "2026-27 Budget",
+    "releaseDate": "Budget night (Treasury); PBO shortly after",
+    "transformations": [
+      "Treasury: parse DOCX tables, continued tables split across pages"
+    ],
+    "compatibility": "Series breaks noted in Statement 11 footnotes (accrual from 1999-00).",
+    "failure": "PBO site not reachable by scripted HTTP from this environment (timeouts/HTTP2 INTERNAL_ERROR); prefer Treasury DOCX.",
+    "validation": "Treasury Table 11.1 2010-11 UCB -47,463 $m (-3.3% GDP) verified. PBO workbook NOT fetched (inferred from search snippet).",
+    "licence": "Treasury CC BY 4.0; PBO licence not verified (PBO generally CC BY 4.0; older data.gov.au mirrors CC BY-NC-ND 3.0 AU).",
+    "implementation": {
+      "adapter": "pipeline/au/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-au/data/outlook.json",
+      "status": "implemented (Treasury Statement 11 only; PBO not used)",
+      "notes": "Tables 11.1, 11.3, 11.4, 11.5 incl. continued tables, 1970-71 to latest actual. Receipts include net Future Fund earnings in 2005-06 to 2019-20 (flag receiptsIncludeFutureFundEarnings, identity checked either way to $2.5m). GDP before 2020-21 implied from receipts / receipts-to-GDP."
+    }
+  },
+  {
+    "id": "au-fiscal-strategy",
+    "provider": "Australian Treasury",
+    "measure": "Government Economic and Fiscal Strategy (Charter of Budget Honesty Act 1998) - qualitative objectives",
+    "source": "BP1 Statement 3 Box 3.1 (DOCX/PDF text)",
+    "entryUrl": "https://budget.gov.au/content/bp1/index.htm",
+    "sampleUrl": "https://budget.gov.au/content/bp1/download/bp1_bs-3.docx",
+    "units": "n/a (qualitative objectives; related official paths only)",
+    "frequency": "Reviewed each budget update",
+    "vintage": "2026-27 Budget",
+    "releaseDate": "Budget night",
+    "transformations": [
+      "Quote Box 3.1 overarching goal and the listed actions verbatim",
+      "Attach official forecast/projection paths per objective (gross debt % GDP peak and end; UCB first year at or above zero; payments % GDP; payments real growth from Statement 11). No pass/fail verdicts, headroom or targets."
+    ],
+    "compatibility": "No legislated numeric targets. The dashboard does not assess compliance.",
+    "failure": "Refresh fails if the Box 3.1 overarching-goal sentence (reduce gross debt as a share of the economy over time) is not found, or fewer than 3 / more than 10 actions are found.",
+    "validation": "Box 3.1 text verified 2026-10-12.",
+    "licence": "CC BY 4.0.",
+    "implementation": {
+      "adapter": "pipeline/au/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-au/data/outlook.json",
+      "status": "implemented",
+      "field": "strategy"
+    }
+  },
+  {
+    "id": "au-tax-expenditures",
+    "provider": "Australian Treasury",
+    "measure": "Tax Expenditures and Insights Statement: revenue forgone per tax expenditure",
+    "source": "TEIS chart data XLSX sheet 'Revenue forgone estimates' (Code, Title, 8 years); metadata (type, functional category, reliability, prior code, * order-of-magnitude category, legislative reference) only in DOCX/PDF Appendix A.1",
+    "entryUrl": "https://treasury.gov.au/publication/p2025-721342",
+    "sampleUrl": "https://treasury.gov.au/sites/default/files/2025-12/p2025-721342-chart-data.xlsx",
+    "units": "A$ million",
+    "frequency": "Annual (2025-26 edition published 17 December 2025, alongside MYEFO)",
+    "vintage": "2025-26 TEIS: 2021-22 to 2028-29 (actuals/estimates/projections); 304 tax expenditures, codes A (personal) B (business) C (super) D E (capital gains) F G H (GST)",
+    "releaseDate": "17 December 2025",
+    "transformations": [
+      "Codes: '-' nil, '..' rounded to zero, '*' unquantifiable, 'nfp' not for publication -> null with status flag",
+      "Join DOCX Appendix A.1 metadata on Code (parse 'Estimate Reliability:', 'Tax expenditure type:', '2024-25 code:', '* Category:')",
+      "Do not sum across tax expenditures (interactions; Treasury caveat)"
+    ],
+    "compatibility": "Revenue-forgone method, no behavioural response; benchmarks differ from HMRC reliefs. Codes renumber between editions (use '2024-25 code' crosswalk).",
+    "failure": "Reject if header row != Code, Title, consecutive years, or code count changes >10%.",
+    "validation": "Verified: 304 rows; H25 Food 2025-26 = 9,900 $m; status counts '*' 1175, '-' 123, '..' 91, 'nfp' 4 cells. Live run 2026-10-12: 304 items joined; all 2,432 cells match the appendix; 6 items 'Included in' another code; 2025-26 largest: E8 Main residence exemption - discount component 32,000; C2 employer super contributions 29,450; E7 main residence exemption 28,000; C4 super earnings 25,950; E15 CGT discount 21,790.",
+    "licence": "CC BY 4.0 (stated in TEIS imprint), © Commonwealth of Australia.",
+    "implementation": {
+      "adapter": "pipeline/au/teis.py fetch_reliefs / validate_reliefs",
+      "group": "reliefs",
+      "output": "public-au/data/reliefs.json",
+      "status": "implemented",
+      "settings": {
+        "PAGE": "https://treasury.gov.au/publication/p2025-721342",
+        "EDITION": "2025-26",
+        "TITLE": "2025–26 Tax Expenditures and Insights Statement",
+        "FIRST_PROJECTION": "2025-26"
+      },
+      "editionUpdate": "No Treasury listing page for TEIS editions could be fetched (treasury.gov.au search redirects; candidate index URLs 404). The edition is therefore pinned: the adapter fetches the pinned publication page, requires its <title> to name this edition, takes publication date from the page datetime and the xlsx/docx links from the page. A new edition (usually December, with MYEFO) needs PAGE/EDITION/TITLE/FIRST_PROJECTION updated in pipeline/au/teis.py and here.",
+      "join": "Workbook (Code, Title, 8 years) joined to DOCX Appendix A.1 on code; every cell must match the appendix value (merged appendix cells \"Included in X\" map to workbook \"-\" as status \"included elsewhere\"). Category counts must equal Table A1.1. taxHead = Table A1.1 category; functionalCategory = estimate table heading; type, reliability, 2024-25 code, * Category (order of magnitude), commencement, expiry, legislative reference from the metadata table.",
+      "aggregation": "aggregate.costMillion is null (no official total). derivedTotals and superannuation.totals sum numeric estimates only and count excluded statuses; nothing is imputed."
+    }
+  },
+  {
+    "id": "au-pbo-mtbo",
+    "provider": "Parliamentary Budget Office",
+    "measure": "Medium-Term Budget Outlook (formerly 'Beyond the budget') projections to ~10 years; National Fiscal Outlook",
+    "source": "PBO publication + Excel data download (inferred)",
+    "entryUrl": "https://www.pbo.gov.au/publications-and-data/data-and-tools/data-portal",
+    "sampleUrl": null,
+    "units": "per cent of GDP; $b",
+    "frequency": "Annual",
+    "vintage": "2026-27 MTBO reportedly 14 July 2026 (search snippet, not fetched); 2025-26 edition 18 Sept 2025",
+    "releaseDate": "unverified",
+    "transformations": [],
+    "compatibility": "Independent projections; forward estimates identical to Budget.",
+    "failure": "PBO website blocked to scripted fetch from this environment - BLOCKER.",
+    "validation": "Not verified by fetch.",
+    "licence": "Not verified."
+  }
+]

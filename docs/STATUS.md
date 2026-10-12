@@ -43,6 +43,14 @@ Final checks: production build; 14 frontend unit tests; 43 Python adapter/pipeli
 
 Next: owner review of the simpler dashboard across devices, then close the DMO coverage/discovery gaps. Do not add scenarios, policy tracking, embedding or elaborate design infrastructure yet.
 
+## Australian edition, 12 October 2026
+
+Built an Australian edition from the same code (`vite --mode au`, published at `au/`). A country config (`src/country.ts`) supplies currency, July–June financial years and wording; UK values reproduce the original text exactly, verified by a rendered-text comparison of 17 UK views before and after. Seven Australian adapters in `pipeline/au/` (Finance monthly statements and FBO, ABS GFS and taxation, Budget/MYEFO, TEIS, AOFM, RBA) write validated data to `public-au/data/`; the archive records them beside the UK bundle. Default scope: Commonwealth general government (cash) for the monthly position; all levels of government (ABS, accrual) for composition, with the Commonwealth view separate.
+
+Validation: 128 Python tests, 41 frontend unit tests, all seven Australian groups validated from live sources, and 26 hosted Chromium/WebKit checks including a new Australian test (pages, CSV attribution, mobile overflow, accessibility, no UK terminology). Three local UK browser tests fail on pinned figures that daily refreshes have overtaken; they fail identically on the unmodified code.
+
+Known gaps: the Budget monthly profile is published month by month, so the forecast comparison is partial; the AOFM calendar covers one week; the RBA curve is monthly and stops at 10 years, with no real curve; ABS composition covers ten years; no curated Australian release calendar yet. Scripted access to aofm.gov.au from GitHub Actions is untested until the first scheduled run.
+
 ## Owner decisions, 29 September
 
 A verdict-led overview with a headroom tracker (modelled on Monetary Space) was tried and rejected by the owner: fiscal policy has no recurring yes/no question like an MPC decision, the headroom framing overweights a number the OBR discourages focusing on, and the page lost value as a reference. The overview was restored. Kept: 'Data as of' stamp top right, link-preview text, a waterfall view of composition changes, and a plain debt-dynamics table on Outlook. Do not reintroduce verdicts or headroom-led framing. Local hosted runs: WebKit refuses port 4190, so serve `.preview` on 4191.
