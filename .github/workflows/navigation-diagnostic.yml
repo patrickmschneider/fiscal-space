@@ -16,8 +16,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npx playwright install --with-deps webkit
-      - name: Reproduce navigation with event diagnostics
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify navigation fix and full hosted suite
         run: |
           mkdir -p .preview/fiscal-space
           cp -R dist/. .preview/fiscal-space/
@@ -25,6 +25,7 @@ jobs:
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
           APP_URL=http://127.0.0.1:4173/fiscal-space/ HOSTED_SMOKE=1 npx playwright test --project=webkit --grep 'shared units' --repeat-each=60 --workers=1
+          APP_URL=http://127.0.0.1:4173/fiscal-space/ npm run test:hosted
       - uses: actions/upload-artifact@v4
         if: always()
         with:
