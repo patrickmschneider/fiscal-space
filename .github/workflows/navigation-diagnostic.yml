@@ -24,7 +24,7 @@ jobs:
           python3 -m http.server 4173 --bind 127.0.0.1 --directory .preview > /tmp/server.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
-          APP_URL=http://127.0.0.1:4173/fiscal-space/ HOSTED_SMOKE=1 npx playwright test --project=webkit --grep 'shared units' --repeat-each=30 --workers=1 --trace retain-on-failure
+          APP_URL=http://127.0.0.1:4173/fiscal-space/ HOSTED_SMOKE=1 npx playwright test --project=webkit --grep 'shared units' --repeat-each=60 --workers=1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
