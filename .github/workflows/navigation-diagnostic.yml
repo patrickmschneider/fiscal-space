@@ -1,0 +1,32 @@
+name: Diagnose WebKit navigation
+on:
+  push:
+    branches: [diagnostic/webkit-navigation]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps webkit
+      - name: Reproduce navigation with event diagnostics
+        run: |
+          mkdir -p .preview/fiscal-space
+          cp -R dist/. .preview/fiscal-space/
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .preview > /tmp/server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          APP_URL=http://127.0.0.1:4173/fiscal-space/ HOSTED_SMOKE=1 npx playwright test --project=webkit --grep 'shared units' --repeat-each=30 --workers=1 --trace retain-on-failure
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: navigation-diagnostics
+          path: test-results/

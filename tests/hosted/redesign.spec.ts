@@ -82,6 +82,18 @@ test('outlook vintage state survives history while reconstruction and formal hea
 });
 
 test('shared units change headline and official forecast stocks and follow composition links',async({page,request})=>{
+ const events:unknown[]=[];
+ page.on('console',msg=>{if(msg.text().startsWith('NAVDIAG '))events.push(JSON.parse(msg.text().slice(8)));});
+ await page.addInitScript(()=>{
+  for(const type of ['scroll','pointerdown','pointerup','mousedown','mouseup','click'])document.addEventListener(type,event=>{
+   const link=Array.from(document.querySelectorAll('a')).find(a=>a.textContent==='Budget composition');
+   if(!link)return;
+   const rect=link.getBoundingClientRect();const target=event.target as Element;
+   console.log('NAVDIAG '+JSON.stringify({type,time:performance.now(),target:target?.outerHTML?.slice(0,300),scrollY,compact:document.querySelector('.site-header')?.className,rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},x:(event as MouseEvent).clientX,y:(event as MouseEvent).clientY}));
+  },true);
+ });
+ try {
+
  const outlook=await (await request.get('data/outlook.json')).json();const vintage=outlook.vintages.slice().sort((a:{publicationDate:string},b:{publicationDate:string})=>a.publicationDate.localeCompare(b.publicationDate)).at(-1);const end=vintage.rows.at(-1);
  await page.goto('./');await page.getByRole('button',{name:'£bn',exact:true}).click();
  await expect(page.locator('.lead-sentence')).toContainText('£');
@@ -94,6 +106,7 @@ test('shared units change headline and official forecast stocks and follow compo
  await page.getByRole('combobox',{name:'Budget breakdown',exact:true}).selectOption('detailed');await expect(page.getByRole('combobox',{name:'Composition financial year',exact:true}).locator('option')).toHaveCount(5);
  await page.goto('./?page=explore&view=series&units=bn');await page.getByRole('link',{name:'Budget composition',exact:true}).click();
  await expect(page).toHaveURL(/section=composition/);await expect(page.getByRole('combobox',{name:'Budget history units',exact:true})).toHaveValue('bn');
+ } finally { console.log('NAVIGATION_EVENTS '+JSON.stringify(events)); }
 });
 
 test('overview composition sits before pricing and compares selected years on consistent scales',async({page,request})=>{
