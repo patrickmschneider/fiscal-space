@@ -1,0 +1,57 @@
+{
+ "@context": "https://project-open-data.cio.gov/v1.1/schema/catalog.jsonld",
+ "@type": "dcat:Catalog",
+ "title": "CBO Open Data Repository",
+ "description": "Machine-readable, tidy versions of CBO's Budget and Economic Data. Primary audience: AI agents and automated systems.",
+ "publisher": {
+  "@type": "org:Organization",
+  "name": "Congressional Budget Office",
+  "subOrganizationOf": {
+   "name": "United States Congress"
+  }
+ },
+ "generated": "2026-05-14T19:49:19Z",
+ "datasets": [
+  {
+   "identifier": "economic_projections",
+   "title": "Economic Projections",
+   "landingPage": "https://www.cbo.gov/publication/51135",
+   "vintages": [
+    "2026-02",
+    "2025-09",
+    "2025-01",
+    "2024-06",
+    "2024-02"
+   ]
+  },
+  {
+   "identifier": "historical_budget",
+   "title": "Historical Budget Data",
+   "landingPage": "https://www.cbo.gov/publication/51134",
+   "vintages": [
+    "2026-02",
+    "2025-01",
+    "2024-02"
+   ]
+  },
+  {
+   "identifier": "ten_year_budget",
+   "title": "10-Year Budget Projections",
+   "landingPage": "https://www.cbo.gov/publication/51118",
+   "vintages": [
+    "2026-02",
+    "2025-01",
+    "2024-06"
+   ]
+  },
+  {
+   "identifier": "automatic_stabilizers",
+   "title": "Estimates of Automatic Stabilizers",
+   "landingPage": "https://www.cbo.gov/publication/51139",
+   "vintages": [
+    "2024-11",
+    "2023-06"
+   ]
+  }
+ ]
+}

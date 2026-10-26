@@ -1,3 +1,4 @@
+import {fyEndMonth} from './country';
 /** Choose clear vertical space across the forecast region, including signed stacks.
  * If neither edge has room, put the label just outside the plot instead.
  */
@@ -20,7 +21,7 @@ export function forecastLabelPosition(rows:Record<string,string|number|null>[],k
 
 /** Locate publication between period-end observations on a categorical time axis. */
 export function publicationBoundary(labels:string[],publication:string,annual=false){
- const ends=labels.map(label=>{const year=Number(label.slice(0,4));const month=annual?3:Number(label.slice(5,7));return Date.UTC(year+(annual?1:0),month,0);});
+ const ends=labels.map(label=>{const year=Number(label.slice(0,4));const month=annual?fyEndMonth:Number(label.slice(5,7));return Date.UTC(year+(annual?1:0),month,0);});
  const date=Date.parse(publication+'T00:00:00Z');
  if(!ends.length||!Number.isFinite(date)||date>ends.at(-1)!)return null;
  if(date<=ends[0])return {index:0,fraction:0};

@@ -1,0 +1,187 @@
+{
+ "schemaVersion": 1,
+ "asOf": "2026-10-26",
+ "forecastBaseline": "2026-02-11",
+ "maintenance": "Curated official-source calendar, verified 26 October 2026 against the Fiscal Data release calendar API (Monthly Treasury Statement), the BEA news release schedule, the BLS CPI and Employment Situation schedules, the Federal Reserve FOMC calendar and Treasury's most recent quarterly refunding documents. Dates are publisher announcements, not automatically discovered; overdue entries must not be presented as upcoming.",
+ "channelNote": "Fiscal channels are explanatory mechanisms identified by Fiscal Space, not official costings or quantified CBO baseline revisions.",
+ "calendar": [
+  {
+   "date": "2026-10-28",
+   "event": "FOMC policy decision (meeting 27-28 October 2026)",
+   "category": "Monetary policy",
+   "description": "Federal Open Market Committee statement on the federal funds target range.",
+   "status": "Confirmed",
+   "source": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+   "likelyFiscalChannel": "Short-term Treasury rates and, over time, the effective interest rate on federal debt and net interest outlays."
+  },
+  {
+   "date": "2026-10-29",
+   "event": "BEA GDP (advance estimate), 3rd quarter 2026",
+   "category": "GDP",
+   "description": "First estimate of Q3 2026 output; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bea.gov/news/schedule",
+   "likelyFiscalChannel": "Nominal GDP is the denominator of every %-of-GDP ratio; activity drives revenues."
+  },
+  {
+   "date": "2026-10-29",
+   "event": "BEA Personal Income and Outlays, September 2026",
+   "category": "Inflation",
+   "description": "Includes the PCE price index; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bea.gov/news/schedule"
+  },
+  {
+   "date": "2026-11-02",
+   "event": "Treasury marketable borrowing estimates (quarterly refunding)",
+   "category": "Financing",
+   "description": "Treasury financing estimates for the October-December and January-March quarters; 3:00 p.m. ET.",
+   "status": "Confirmed",
+   "source": "https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding/most-recent-quarterly-refunding-documents",
+   "likelyFiscalChannel": "Expected net marketable borrowing and end-of-quarter cash balance."
+  },
+  {
+   "date": "2026-11-04",
+   "event": "Treasury quarterly refunding statement",
+   "category": "Financing",
+   "description": "Policy statement on auction sizes and debt-management guidance; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding/most-recent-quarterly-refunding-documents",
+   "likelyFiscalChannel": "Maturity mix of new issuance and hence future refinancing and interest costs."
+  },
+  {
+   "date": "2026-11-06",
+   "event": "BLS Employment Situation, October 2026",
+   "category": "Labor market",
+   "description": "Payrolls, unemployment rate and average hourly earnings; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bls.gov/schedule/news_release/empsit.htm",
+   "likelyFiscalChannel": "Employment and wages drive payroll and income-tax receipts and automatic-stabilizer outlays."
+  },
+  {
+   "date": "2026-11-10",
+   "event": "BLS Consumer Price Index, October 2026",
+   "category": "Inflation",
+   "description": "CPI-U for October 2026; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bls.gov/schedule/news_release/cpi.htm",
+   "likelyFiscalChannel": "Indexation of Social Security and tax brackets, and TIPS accruals in net interest."
+  },
+  {
+   "date": "2026-11-12",
+   "event": "Monthly Treasury Statement (October 2026, first month of FY2027)",
+   "category": "Public finances",
+   "description": "Federal receipts, outlays and deficit for the month; scheduled 2:00 p.m. ET (19:00 UTC in the Fiscal Data release calendar).",
+   "status": "Confirmed",
+   "source": "https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/"
+  },
+  {
+   "date": "2026-11-25",
+   "event": "BEA GDP (second estimate) and corporate profits, 3rd quarter 2026",
+   "category": "GDP",
+   "description": "Revised Q3 2026 GDP; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bea.gov/news/schedule"
+  },
+  {
+   "date": "2026-11-25",
+   "event": "BEA Personal Income and Outlays, October 2026",
+   "category": "Inflation",
+   "description": "Includes the PCE price index; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bea.gov/news/schedule"
+  },
+  {
+   "date": "2026-12-04",
+   "event": "BLS Employment Situation, November 2026",
+   "category": "Labor market",
+   "description": "Payrolls and unemployment rate; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2026-12-09",
+   "event": "FOMC policy decision and Summary of Economic Projections (meeting 8-9 December 2026)",
+   "category": "Monetary policy",
+   "description": "Rate decision with participants' economic projections.",
+   "status": "Confirmed",
+   "source": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+   "likelyFiscalChannel": "Short-term Treasury rates and net interest outlays."
+  },
+  {
+   "date": "2026-12-10",
+   "event": "BLS Consumer Price Index, November 2026",
+   "category": "Inflation",
+   "description": "CPI-U for November 2026; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2026-12-10",
+   "event": "Monthly Treasury Statement (November 2026)",
+   "category": "Public finances",
+   "description": "Federal receipts, outlays and deficit; scheduled 2:00 p.m. ET (19:00 UTC in the Fiscal Data release calendar).",
+   "status": "Confirmed",
+   "source": "https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/"
+  },
+  {
+   "date": "2026-12-23",
+   "event": "BEA GDP (third estimate), 3rd quarter 2026",
+   "category": "GDP",
+   "description": "Third Q3 2026 estimate with industries, corporate profits, state GDP and state personal income; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bea.gov/news/schedule"
+  },
+  {
+   "date": "2026-12-23",
+   "event": "BEA Personal Income and Outlays, November 2026",
+   "category": "Inflation",
+   "description": "Includes the PCE price index; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bea.gov/news/schedule"
+  },
+  {
+   "date": "2027-01-08",
+   "event": "BLS Employment Situation, December 2026",
+   "category": "Labor market",
+   "description": "Payrolls and unemployment rate; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "date": "2027-01-13",
+   "event": "BLS Consumer Price Index, December 2026",
+   "category": "Inflation",
+   "description": "CPI-U for December 2026; 8:30 a.m. ET.",
+   "status": "Confirmed",
+   "source": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "date": "2027-01-27",
+   "event": "FOMC policy decision (meeting 26-27 January 2027)",
+   "category": "Monetary policy",
+   "description": "The Federal Reserve lists this meeting as tentative until confirmed at the preceding meeting.",
+   "status": "Tentative",
+   "source": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  }
+ ],
+ "events": [],
+ "undatedWatch": [
+  {
+   "event": "CBO Monthly Budget Review",
+   "expectedWindow": "Monthly, usually a few days before the Monthly Treasury Statement",
+   "description": "CBO's estimate of the federal deficit for the latest month and fiscal year to date. cbo.gov blocks scripted access, so no date is asserted here.",
+   "source": "https://www.cbo.gov/topics/budget/monthly-budget-review"
+  },
+  {
+   "event": "Next CBO Budget and Economic Outlook",
+   "expectedWindow": "Typically January or February",
+   "description": "CBO's next 10-year baseline. A new baseline is added as a vintage after review; no release date is asserted here.",
+   "source": "https://www.cbo.gov/data/budget-economic-data"
+  }
+ ],
+ "notes": [
+  "Curated official-source calendar, verified 26 October 2026. BLS schedule pages return HTTP 403 to scripted requests; their dates were read from the BLS pages by a reviewed web fetch on the same day and must be rechecked by hand.",
+  "No developments ledger has been compiled for the United States yet; events is empty. Fiscal channels are explanatory, not official costings."
+ ]
+}

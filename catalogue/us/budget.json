@@ -1,0 +1,162 @@
+[
+  {
+    "id": "us-cbo-ten-year-budget",
+    "provider": "Congressional Budget Office (CBO)",
+    "measure": "10-year baseline budget projections: revenues, outlays (mandatory, discretionary, net interest), total and primary deficit, debt held by the public ($bn and % of GDP), debt subject to limit, average interest rate on debt",
+    "source": "CBO open-data repository US-CBO/cbo-data, dataset ten_year_budget (long-format CSV date,variable,value; schema.json per dataset; catalog.json at root). Tidy versions of the CBO '10-Year Budget Projections' workbook (Tables 1-1, 1-3, 1-4 in 2026-02; B-1, B-3, B-6 in 2025-01; 1-5 in 2024-06).",
+    "entryUrl": "https://www.cbo.gov/publication/51118",
+    "sampleUrl": "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/budget/ten_year_budget/annual_fy_2026-02.csv",
+    "units": "US$ billions; per cent of GDP for _gdp_share variables",
+    "frequency": "Each CBO baseline (Budget and Economic Outlook, usually January/February, plus occasional updates)",
+    "vintage": "2026-02 (The Budget and Economic Outlook: 2026 to 2036, released 11 February 2026), 2025-01 (2025 to 2035, 17 January 2025), 2024-06 (An Update to the Budget and Economic Outlook: 2024 to 2034, 18 June 2024). The first year of each file is actual; the next 11 are projections.",
+    "releaseDate": "Not in the repository. Dates checked by hand 2026-10-26 (CBO testimony on the 2026-2036 outlook; CRFB release notes). cbo.gov blocks scripted requests (DataDome), so the adapter cannot confirm dates at refresh time; they are pinned in pipeline/us/outlook.py.",
+    "transformations": [
+      "Dates FY2026 -> '2025-26' (start-year labels shared with the UK/AU editions)",
+      "borrowingBn = minus proj_deficit_total (positive = deficit); primaryDeficitBn = minus proj_primary_deficit",
+      "gdpBn implied from proj_debt_held_by_public / proj_debt_held_by_public_gdp_share; ratios derived from $bn and that GDP",
+      "Only the variables used are parsed; a duplicate of a used variable is an error"
+    ],
+    "compatibility": "Unified federal budget (on- plus off-budget). Current-law baseline projections, not forecasts of legislation. Debt held by the public is gross of federal financial assets (debt minus financial assets kept separately); not comparable with general-government net debt.",
+    "failure": "Refresh fails if catalog.json lists a ten_year_budget vintage newer than the latest pinned one (review and add, never substitute), if a pinned vintage disappears, the column layout changes, years are not contiguous, the first year is not the expected actual year, implied GDP differs from CBO's fiscal-year GDP projection by >0.5%, or derived ratios differ from CBO-published ratios by >0.06pp.",
+    "validation": "Live run 2026-10-26: revenues - outlays = deficit exactly in all three vintages; primary deficit = deficit + net interest; mandatory + discretionary + net interest = outlays. 2026-02 FY2026 deficit $1,852.7bn = 5.81% of GDP, debt 100.6%; FY2036 deficit 6.67%, debt 120.2% (CBO headline 6.7% / 120%). Derived vs published ratios within 0.0005pp except one known repository glitch (2024-06 key-projections FY2024 deficit -6.992% of GDP vs 6.73% implied by the same file's deficit and GDP; excluded explicitly in KNOWN_RATIO_ERRORS).",
+    "licence": "Public domain within the United States (17 U.S.C. 105); worldwide rights waived per LICENSE.md. CBO asks that modifications be identified and attributed.",
+    "implementation": {
+      "adapter": "pipeline/us/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-us/data/outlook.json",
+      "status": "implemented",
+      "pinnedUrls": [
+        "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/budget/ten_year_budget/annual_fy_2024-06.csv",
+        "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/budget/ten_year_budget/annual_fy_2025-01.csv",
+        "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/budget/ten_year_budget/annual_fy_2026-02.csv"
+      ],
+      "notes": "Each vintage's sources cite the CBO data page (url) and the GitHub file (downloadUrl). Rows: one actual year (status outturn) plus 11 projection years (status forecast). projections[] is empty: the CBO long-term budget projections (long_term_budget) are not imported."
+    }
+  },
+  {
+    "id": "us-cbo-economic-projections",
+    "provider": "Congressional Budget Office (CBO)",
+    "measure": "Economic projections by federal fiscal year: real and nominal GDP growth, CPI-U and PCE inflation, GDP price index, unemployment rate, federal funds rate, 3-month Treasury bill rate, 10-year Treasury note yield, ECI wages and salaries, output gap, nominal GDP",
+    "source": "US-CBO/cbo-data economic_projections, fiscal_<vintage>.csv (date,variable,value,estimate_type; dates are bare fiscal years such as 2026)",
+    "entryUrl": "https://www.cbo.gov/publication/51135",
+    "sampleUrl": "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/economic/economic_projections/fiscal_2026-02.csv",
+    "units": "Per cent (rates, fiscal-year average growth); US$ billions SAAR (GDP)",
+    "frequency": "Each CBO baseline; 2025-09 'current view of the economy' vintage exists but has no matching budget baseline and is not imported",
+    "vintage": "2026-02, 2025-01, 2024-06 (matching the budget vintages)",
+    "releaseDate": "With each baseline",
+    "transformations": [
+      "Growth rates are fiscal-year averages over the previous fiscal year (verified against levels)",
+      "inflation = CPI-U; pceInflation and corePceInflation kept separately",
+      "bankRate = fed_funds_rate and giltYield = treasury_note_rate_10yr are aliases so the shared assumption chart works; the US-specific keys are fedFundsRate, treasuryBillRate3m, treasuryNoteRate10y",
+      "earningsGrowth = ECI private wages and salaries growth; outputGapPct = CBO output gap (% of potential GDP)",
+      "economicStatus = actual/projected from estimate_type (the latest actual budget year can still be 'projected' economically, e.g. FY2025 in 2026-02 because Q4 2025 GDP was not yet published)"
+    ],
+    "compatibility": "Fiscal-year averages, not calendar-year or Q4/Q4 rates that CBO headlines in its reports.",
+    "failure": "Refresh fails if any used variable is missing for a budget year, or duplicated.",
+    "validation": "2026-02 FY2026: real GDP 2.286%, nominal 5.181%, CPI-U 2.961%, unemployment 4.55%, 10-year 4.098%, 3-month 3.432%, fed funds 3.572%, output gap 1.1. The 2024-06 file repeats seven unrelated variables (e.g. government_c_gi_pct_change three times per year) - a repository defect; not used.",
+    "licence": "Public domain (17 U.S.C. 105).",
+    "implementation": {
+      "adapter": "pipeline/us/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-us/data/outlook.json",
+      "status": "implemented"
+    }
+  },
+  {
+    "id": "us-cbo-historical-budget",
+    "provider": "Congressional Budget Office (CBO)",
+    "measure": "Historical revenues, outlays (mandatory, discretionary, net interest), deficit and debt held by the public, $bn and % of GDP, FY1962 to the latest actual year",
+    "source": "US-CBO/cbo-data historical_budget annual_fy_<vintage>.csv",
+    "entryUrl": "https://www.cbo.gov/publication/51134",
+    "sampleUrl": "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/budget/historical_budget/annual_fy_2026-02.csv",
+    "units": "US$ billions; per cent of GDP",
+    "frequency": "With each baseline",
+    "vintage": "2026-02: FY1962-FY2025 (64 years)",
+    "releaseDate": "With the February 2026 baseline",
+    "transformations": [
+      "Published GDP shares used for borrowingPct/receiptsPct/spendingPct/interestPct/debtPct; gdpBn implied from the debt ratio",
+      "deficitInterestBn = net interest (the Deficits page reads it for history rows)",
+      "History stops before the latest vintage's first projected year"
+    ],
+    "compatibility": "Unified budget; consistent with the ten-year baseline actual year (checked).",
+    "failure": "Refresh fails if years are not contiguous, revenues - outlays != deficit, published ratios inconsistent with implied GDP (>0.01pp), or FY2025 disagrees with the 2026-02 baseline actual.",
+    "validation": "Live run 2026-10-26: identity max error 5e-13; FY2025 deficit $1,775.4bn, debt $30,172.4bn, net interest $969.9bn match the 2026-02 baseline actual year.",
+    "licence": "Public domain (17 U.S.C. 105).",
+    "implementation": {
+      "adapter": "pipeline/us/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-us/data/outlook.json",
+      "status": "implemented",
+      "notes": "eval-projections (US-CBO/eval-projections input_data/baselines.csv, actuals.csv) was reviewed but not needed: cbo-data covers three baselines and history from FY1962."
+    }
+  },
+  {
+    "id": "us-cbo-automatic-stabilizers",
+    "provider": "Congressional Budget Office (CBO)",
+    "measure": "Deficit with and without automatic stabilizers (cyclically adjusted deficit), effect of stabilizers, GDP and unemployment gaps; $bn and % of potential GDP",
+    "source": "US-CBO/cbo-data automatic_stabilizers annual_fy_2024-11.csv",
+    "entryUrl": "https://www.cbo.gov/publication/51139",
+    "sampleUrl": "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/budget/automatic_stabilizers/annual_fy_2024-11.csv",
+    "units": "US$ billions (rounded to 0.1); per cent of potential GDP",
+    "frequency": "Irregular (2023-06, 2024-11 in the repository)",
+    "vintage": "2024-11: FY1965-FY2034, built on the June 2024 baseline (its FY2024-2034 deficits equal the 2024-06 ten_year_budget projections)",
+    "releaseDate": "November 2024 (exact day not verified)",
+    "transformations": [
+      "structuralBorrowingBn = minus deficit without automatic stabilizers; automaticStabilizersBn = minus effect on deficit (positive adds to the deficit)",
+      "Attached to history for actual years FY1965-FY2023 and to the 2024-06 vintage rows only; no estimates exist for the 2025-01 and 2026-02 baselines",
+      "structuralBorrowingPct and structuralPrimaryBalancePct derived with actual GDP; CBO's ratio to potential GDP kept as structuralBorrowingPotentialGdpPct"
+    ],
+    "compatibility": "CBO automatic stabilizers, not the OBR cyclically adjusted PSNB or Treasury's structural budget balance; no temporary-measures adjustment.",
+    "failure": "Refresh fails if with - effect != without (>0.15), or the deficit with stabilizers differs from the historical actual / 2024-06 baseline by >0.15bn.",
+    "validation": "FY2020: deficit 3,132.5 = without stabilizers 2,859.1 + stabilizers 273.3; FY2024 (2024-06 baseline): 1,915.2 = 2,038.8 - 123.7.",
+    "licence": "Public domain (17 U.S.C. 105).",
+    "implementation": {
+      "adapter": "pipeline/us/outlook.py fetch_outlook / validate_outlook",
+      "group": "outlook",
+      "output": "public-us/data/outlook.json",
+      "status": "implemented"
+    }
+  },
+  {
+    "id": "us-statutory-budget-constraints",
+    "provider": "US Treasury (debt limit); Congress / OMB (Statutory PAYGO)",
+    "measure": "Statutory debt limit (31 U.S.C. 3101) and Statutory Pay-As-You-Go Act of 2010 (Title I of Public Law 111-139), described qualitatively",
+    "source": "Treasury debt limit page; GovInfo Public Law 111-139",
+    "entryUrl": "https://home.treasury.gov/policy-issues/financial-markets-financial-institutions-and-fiscal-service/debt-limit",
+    "sampleUrl": "https://www.govinfo.gov/app/details/PLAW-111publ139",
+    "units": "n/a; CBO projection of debt subject to limit ($bn) attached as indicator",
+    "frequency": "Changes by legislation",
+    "vintage": "Checked 2026-10-26",
+    "releaseDate": "n/a",
+    "transformations": [
+      "Represented in outlook.rules with headroomBn null, met null, targetYear null (RuleSummary renders 'Not assessed' / 'No formal assessment')"
+    ],
+    "compatibility": "Neither is a fiscal rule in the UK sense: no target, horizon or headroom. The statutory dollar limit is not imported.",
+    "failure": "Validator rejects any headroom or verdict on these items.",
+    "validation": "Treasury page and GovInfo page fetched 2026-10-26 (HTTP 200). uscode.house.gov section URLs returned 404 to the scripted check and are not cited.",
+    "licence": "US Government works, public domain.",
+    "implementation": {
+      "adapter": "pipeline/us/outlook.py statutory_constraints",
+      "group": "outlook",
+      "output": "public-us/data/outlook.json",
+      "status": "implemented"
+    }
+  },
+  {
+    "id": "us-cbo-website",
+    "provider": "Congressional Budget Office",
+    "measure": "cbo.gov publication pages and XLSX workbooks",
+    "source": "https://www.cbo.gov/data/budget-economic-data",
+    "entryUrl": "https://www.cbo.gov/data/budget-economic-data",
+    "sampleUrl": null,
+    "units": "n/a",
+    "frequency": "n/a",
+    "vintage": "n/a",
+    "releaseDate": "n/a",
+    "transformations": [],
+    "compatibility": "Canonical source; the repository mirrors it.",
+    "failure": "cbo.gov returns HTTP 403 with a DataDome bot challenge to scripted requests (verified 2026-10-26). Not circumvented. All downloads use the official US-CBO GitHub repository instead.",
+    "validation": "Blocked.",
+    "licence": "Public domain."
+  }
+]

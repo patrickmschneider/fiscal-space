@@ -1,0 +1,1 @@
+{"dataset_id":"015-BFS-2014Q1-13","title":"Monthly Treasury Statement (MTS)","apis":[{"endpoint_txt":"/services/api/fiscal_service/v1/accounting/mts/mts_table_1","last_updated":"2026-10-23","latest_date":"2026-09-30"},{"endpoint_txt":"/services/api/fiscal_service/v1/accounting/mts/mts_table_9","last_updated":"2026-10-23","latest_date":"2026-09-30"}]}

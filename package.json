@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "dev:au": "vite --host 127.0.0.1 --mode au",
-    "build": "tsc -b && vite build && vite build --mode au --outDir dist/au",
+    "dev:us": "vite --host 127.0.0.1 --mode us",
+    "build": "tsc -b && vite build && vite build --mode au --outDir dist/au && vite build --mode us --outDir dist/us",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:browser": "playwright test",
     "test:data": "python3 -m unittest discover -s tests -p 'test_*.py'",
     "refresh": "python3 -m pipeline.refresh",
     "refresh:au": "python3 -m pipeline.refresh --country au",
+    "refresh:us": "python3 -m pipeline.refresh --country us",
     "test:hosted": "HOSTED_SMOKE=1 playwright test"
   },
   "dependencies": {

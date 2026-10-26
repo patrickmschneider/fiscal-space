@@ -1,0 +1,113 @@
+{
+  "provider": "U.S. Department of the Treasury, Bureau of the Fiscal Service",
+  "publisher": "U.S. Department of the Treasury, Bureau of the Fiscal Service (Fiscal Data)",
+  "licence": "Public domain (U.S. Government work)",
+  "licenceUrl": "https://fiscaldata.treasury.gov/about-us/",
+  "attribution": "Source: U.S. Department of the Treasury, Bureau of the Fiscal Service, Fiscal Data (fiscaldata.treasury.gov). U.S. Government work, not subject to copyright in the United States.",
+  "landingUrl": "https://fiscaldata.treasury.gov/api-documentation/",
+  "pages": {
+    "apiDocumentation": "https://fiscaldata.treasury.gov/api-documentation/",
+    "mspdLanding": "https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/",
+    "pennyLanding": "https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/",
+    "auctionsLanding": "https://fiscaldata.treasury.gov/datasets/treasury-securities-auctions-data/",
+    "upcomingLanding": "https://fiscaldata.treasury.gov/datasets/upcoming-auctions/",
+    "ratesLanding": "https://fiscaldata.treasury.gov/datasets/average-interest-rates-treasury-securities/",
+    "treasuryDirectPress": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/"
+  },
+  "access": {
+    "api": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/ ; no key, JSON, HTTPS. Query parameters fields=, filter=field:op:value (comma-separated conditions; ops eq, gte, lte, in:(a,b)), sort=field,-field, page[number], page[size] (max 10000). meta.total-count and meta.total-pages drive pagination.",
+    "fieldsCaution": "With fields= the API returns DISTINCT rows over the selected columns, so every query keeps a unique key (src_line_nbr for MSPD tables, cusip + auction_date for auctions).",
+    "nullValues": "Missing values are the string \"null\"; MSPD shows \"*\" for amounts under $500,000 (treated as zero).",
+    "robots": "No bot protection observed; default pipeline User-Agent accepted.",
+    "verifiedDate": "2026-10-26"
+  },
+  "datasets": [
+    {
+      "id": "mspd-table-3-market",
+      "name": "MSPD Table III-A: Detail of Marketable Treasury Securities Outstanding",
+      "endpoint": "v1/debt/mspd/mspd_table_3_market",
+      "fields": ["record_date", "security_class1_desc (Bills Maturity Value, Notes, Bonds, Inflation-Protected Securities, Floating Rate Notes, Federal Financing Bank, Total Marketable)", "security_class2_desc (CUSIP, or 'Total Unmatured/Matured Treasury ...' subtotal labels)", "interest_rate_pct", "yield_pct (FRNs: auction discount margin)", "issue_date", "maturity_date", "issued_amt", "inflation_adj_amt", "redeemed_amt (negative)", "outstanding_amt (first row of each CUSIP only)"],
+      "units": "USD million",
+      "frequency": "Monthly (month end), published about the 4th business day of the following month",
+      "history": "2001 onward",
+      "basis": "One row per issue (original issue and each reopening). outstanding = sum(issued) + sum(inflation adjustment) + sum(redeemed). Includes securities held in Government accounts; no per-CUSIP split between public and intragovernmental holders.",
+      "observedOn": "2026-10-26: record date 2026-09-30, 893 rows, 400 unmatured CUSIPs"
+    },
+    {
+      "id": "mspd-table-1",
+      "name": "MSPD Table I: Summary of Treasury Securities Outstanding",
+      "endpoint": "v1/debt/mspd/mspd_table_1",
+      "fields": ["record_date", "security_type_desc", "security_class_desc", "debt_held_public_mil_amt", "intragov_hold_mil_amt", "total_mil_amt"],
+      "units": "USD million",
+      "history": "2001-01-31 onward. TIPS appear as Inflation-Indexed Notes and Bonds until May 2004; FRNs from January 2014; the total line is 'Total Treasury Securities Outstanding' in Jan-Feb 2001.",
+      "note": "TIPS totals include accrued inflation compensation."
+    },
+    {
+      "id": "debt-to-the-penny",
+      "endpoint": "v2/accounting/od/debt_to_penny",
+      "fields": ["record_date", "debt_held_public_amt", "intragov_hold_amt", "tot_pub_debt_out_amt"],
+      "units": "USD",
+      "frequency": "Daily (business days), one-day lag"
+    },
+    {
+      "id": "auctions-query",
+      "name": "Treasury Securities Auctions Data",
+      "endpoint": "v1/accounting/od/auctions_query",
+      "units": "USD",
+      "history": "1979 onward (about 11,000 auctions)",
+      "fields": ["cusip", "security_type (Bill, Note, Bond)", "security_term / original_security_term", "reopening", "cash_management_bill_cmb", "inflation_index_security", "floating_rate", "announcemt_date", "auction_date", "issue_date", "maturity_date", "int_rate", "spread", "offering_amt", "total_tendered", "total_accepted", "soma_tendered", "soma_accepted", "comp_accepted", "bid_to_cover_ratio", "high_yield", "avg_med_yield", "low_yield", "high_investment_rate", "high_discnt_rate", "high_discnt_margin", "primary_dealer_accepted", "direct_bidder_accepted", "indirect_bidder_accepted", "pdf_filenm_announcemt", "pdf_filenm_comp_results"],
+      "quirks": "Announced auctions appear before they are held with null results; results for recently held auctions can lag by several days (on 2026-10-26 auctions of 19-22 Oct had no results). TIPS and FRNs carry security_type Note/Bond and are identified by inflation_index_security and floating_rate. bid_to_cover_ratio = (total_tendered - soma_tendered) / (total_accepted - soma_accepted), rounded to 2 dp. record_date equals the issue date.",
+      "pressFiles": "Results and announcement PDFs: https://www.treasurydirect.gov/instit/annceresult/press/preanre/<YYYY>/<file>.pdf"
+    },
+    {
+      "id": "upcoming-auctions",
+      "endpoint": "v1/accounting/od/upcoming_auctions",
+      "fields": ["record_date", "security_type (Bill, CMB, Note, Bond, TIPS Note, TIPS Bond, FRN Note)", "security_term", "reopening", "cusip", "offering_amt", "announcemt_date", "auction_date", "issue_date"],
+      "quirks": "Weekly snapshot; stray rows from old snapshots (2024, 2025, January 2026) are never removed, so only the latest record_date is used. Offering amounts are null until the auction is announced. The latest snapshot on 2026-10-26 was dated 2026-10-16. No maturity date. security_type is unreliable for TIPS and FRNs: the 5-year TIPS 91282CRR4 (auction 22 Oct 2026) was listed as \"Note 5-Year\", and the new 2-year FRN 91282CRS2 (auction 28 Oct 2026, Wednesday) appears as a second \"Note 2-Year\" beside the fixed-rate 2-year 91282CRU7 (26 Oct), both settling 2 Nov. Once an auction is announced the auctions dataset flags it correctly and replaces the snapshot entry, but that can lag by days, so parse_upcoming relabels FRNs (known FRN CUSIP, or the later of two new 2-year notes with the same issue date)."
+    },
+    {
+      "id": "avg-interest-rates",
+      "endpoint": "v2/accounting/od/avg_interest_rates",
+      "fields": ["record_date", "security_type_desc", "security_desc", "avg_interest_rate_amt"],
+      "units": "Percent",
+      "frequency": "Monthly"
+    }
+  ],
+  "availability": {
+    "stock": "available: marketable Treasury securities by CUSIP at the latest month end of the Monthly Statement of the Public Debt (bills, notes, bonds, TIPS and floating rate notes)",
+    "uplifted": "available: the Monthly Statement of the Public Debt publishes TIPS principal including accrued inflation compensation; face value is the amount issued less the amount redeemed",
+    "auctions": "available: note and bond auction results (including TIPS and floating rate notes) for the last 12 months and bill results (including cash management bills) for the last 3 months; the downloadable history adds note and bond results for ten years and bill results for 12 months. The source dataset goes back to 1979",
+    "postAuction": "not applicable: Treasury has no post-auction option facility; Federal Reserve (SOMA) rollover add-ons are reported separately",
+    "calendar": "partial: Treasury's weekly upcoming-auctions snapshot (announced and tentative auctions, typically one to two weeks ahead) plus announced auctions whose results are not yet in the auctions dataset. Treasury's quarterly tentative auction schedule is not included",
+    "ownership": "partial: debt held by the public and intragovernmental holdings by security class (MSPD); foreign holdings (Treasury International Capital) are not included",
+    "discoveryRequired": false
+  },
+  "definitions": {
+    "stock": "Marketable Treasury securities outstanding (bills, notes, bonds, TIPS and floating rate notes), in millions of dollars, at the month end of the Monthly Statement of the Public Debt. Includes the small amount held in government accounts (intragovernmental) and Federal Reserve holdings. Excludes nonmarketable debt (Government Account Series, savings bonds, State and Local Government Series and others), Federal Financing Bank securities and matured securities not yet presented for payment. Not market value.",
+    "type": "Conventional securities are fixed-coupon notes and bonds, discount bills and floating rate notes; index-linked securities are TIPS. Floating rate notes have no fixed coupon: they pay a fixed spread over the 13-week bill rate.",
+    "coupon": "Annual coupon rate, percent. Bills are discount securities and have a zero coupon. TIPS coupons are real rates paid on inflation-adjusted principal.",
+    "maturity": "Contractual maturity date. Treasury securities are not callable (except a few old bonds, all matured).",
+    "nominal": "Face (par) value: amount issued less amount redeemed (for TIPS, original principal before inflation adjustment).",
+    "uplifted": "Amount outstanding in the Monthly Statement of the Public Debt: equal to face value for nominal securities; for TIPS it adds the inflation adjustment accrued to the statement date. Not market value.",
+    "publicDebt": "Table I of the Monthly Statement of the Public Debt at the same month end: total public debt outstanding = debt held by the public + intragovernmental holdings = marketable + nonmarketable debt. The daily figure is the latest Debt to the Penny observation. These are gross public debt measures, not net debt, and differ from the measure subject to the statutory debt limit.",
+    "auctionAmounts": "Millions of dollars. The offering amount is the announced auction size; the amount allotted is the total accepted excluding Federal Reserve (SOMA) add-ons; bids are total tenders excluding SOMA; the SOMA add-on is accepted on top of the offering.",
+    "auctionYield": "Single-price auctions. Bills: high investment rate (bond-equivalent), with the high discount rate also shown. Notes and bonds: nominal high yield. TIPS: real high yield. Floating rate notes have no auction yield; the high discount margin over the 13-week bill rate is shown instead.",
+    "cover": "Treasury bid-to-cover ratio: tenders divided by amount accepted, both excluding SOMA.",
+    "tail": "Not available: Treasury does not publish a tail, and the when-issued yield needed to compute one is not in the dataset. Median and low accepted yields are published.",
+    "investorClasses": "Competitive awards to primary dealers, direct bidders and indirect bidders (which include foreign and international monetary authorities bidding through the Federal Reserve Bank of New York); together they make up total competitive awards.",
+    "calendar": "Treasury's upcoming-auctions list: announced auctions with offering amount and CUSIP, and tentative auctions whose amount is not yet announced. That list does not identify floating rate notes, so this dashboard labels them from Treasury's issuance pattern (see notes).",
+    "stockHistory": "Month-end totals by class of security from Table I of the Monthly Statement of the Public Debt since January 2001, in millions of dollars (TIPS including inflation adjustment). Marketable debt held by the public excludes intragovernmental holdings of marketable securities.",
+    "maturity.weightedAverageYears": "Face-value-weighted average remaining contractual maturity of the marketable stock at the statement date (dashboard calculation; Treasury's own weighted average maturity covers debt held by the public)."
+  },
+  "notes": [
+    "All money values are in millions of dollars unless stated otherwise.",
+    "Holdings are as of the month end of the Monthly Statement of the Public Debt. Bills issued and securities matured since then are not reflected; the latest daily total comes from Debt to the Penny.",
+    "ISINs are derived from CUSIPs (US + CUSIP + check digit); Treasury publishes CUSIPs.",
+    "Securities are shown in full, including holdings by government accounts and the Federal Reserve; the split between public and intragovernmental holders is available only by class of security.",
+    "TIPS principal including the inflation adjustment is as published in the Monthly Statement of the Public Debt, not a dashboard calculation.",
+    "Full auction records cover note and bond auctions (including TIPS and floating rate notes) for 12 months and bill auctions for 3 months, because bills are auctioned several times a week (about 340 a year). The downloadable history covers ten years of note and bond auctions and 12 months of bill auctions.",
+    "Auctions held recently can lack results in the source for several days; they stay in the calendar until results appear.",
+    "Treasury's upcoming-auctions list shows floating rate notes as ordinary notes. A reopening of an outstanding floating rate note, or a second new 2-year note auctioned later in the same week as the fixed-rate 2-year note and settling on the same day, is labeled as a floating rate note.",
+    "Federal Financing Bank securities (held entirely within government) and matured securities not yet presented for payment are excluded from the list of securities but included in total public debt."
+  ]
+}

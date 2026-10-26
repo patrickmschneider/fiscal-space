@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "draft": "US federal fiscal position sources. Verified by download on 2026-10-26. All entries are implemented in pipeline/us/fiscal.py (groups 'fiscal' and 'forecast').",
+  "sources": [
+    {
+      "id": "treasury-mts",
+      "landingUrl": "https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/",
+      "apiDocs": "https://fiscaldata.treasury.gov/api-documentation/",
+      "downloadUrls": {
+        "table1": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/mts/mts_table_1?sort=record_date,src_line_nbr&page[size]=10000&page[number]=1",
+        "table9": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/mts/mts_table_9?sort=record_date,src_line_nbr&page[size]=10000&page[number]=1",
+        "metadata": "https://api.fiscaldata.treasury.gov/services/dtg/metadata/015-BFS-2014Q1-13",
+        "releaseCalendar": "https://api.fiscaldata.treasury.gov/services/calendar/release"
+      },
+      "datasetId": "015-BFS-2014Q1-13",
+      "format": "JSON API (no key); amounts are strings in dollars and cents; paginate with page[size] (max 10000) and page[number]; meta.total-count checked against rows received",
+      "publicationDate": "2026-10-23 (Fiscal Data 'last_updated' for mts_table_1; the statement itself is released on the eighth business day after month end)",
+      "latestObservation": "2026-09 (September 2026 statement, FY2026 year end)",
+      "frequency": "monthly; next release 2026-11-12 per the Fiscal Data release calendar (datasetId 015-BFS-2014Q1-13)",
+      "history": "API statements from record_date 2015-03-31. Table 1 in each statement repeats every month of the current and prior fiscal year, so totals exist from October 2013; Table 9 (current month, current FYTD, prior FYTD) gives complete detail from October 2014 (FY2015) using FY2016 prior-year columns. Output starts 2014-10.",
+      "unit": "USD (dollars and cents); output USD million rounded to $1,000",
+      "basis": "Cash; unified budget (on-budget plus off-budget); not seasonally adjusted; fiscal year October-September",
+      "scope": "US federal government; excludes state and local governments",
+      "licence": {
+        "name": "Public domain (U.S. Government work, 17 U.S.C. 105)",
+        "url": "https://fiscaldata.treasury.gov/about-us/"
+      },
+      "revisions": "Table 1 restates months of the current and prior fiscal year in every statement; 101 of 156 months differ between first and last publication, mostly by under $100m but up to $16.7bn (outlays, September 2024). Table 9 prior-FYTD differences reconcile with the newest Table 1 values within $1.7bn (largest: November 2015 outlays). Table 9 current-month values equal Table 1 as first published to the dollar.",
+      "tables": {
+        "mts_table_1": "Summary of Receipts, Outlays, and the Deficit/Surplus. Rows: 'FY YYYY' header (parent_id null), month rows (record_type_cd MTH, classification_desc = month name, parent = FY header) and 'Year-to-Date' total. Columns current_month_gross_rcpt_amt, current_month_gross_outly_amt, current_month_dfct_sur_amt (positive = deficit). Despite the 'gross' field names these are net budget receipts and outlays and equal Table 9 totals.",
+        "mts_table_9": "Summary of Receipts by Source, and Outlays by Function. Sections 'Receipts' and 'Net Outlays' (sequence_level_nbr 1); detail rows data_type_cd D; totals T; 'Social Insurance and Retirement Receipts:' is a valueless subheading over three lines. Columns current_month_rcpt_outly_amt, current_fytd_rcpt_outly_amt, prior_fytd_rcpt_outly_amt.",
+        "mts_table_4": "Receipts by source in more detail (withheld vs non-withheld individual taxes, refunds). Not used: Table 9 already gives an exhaustive source split.",
+        "mts_table_5": "Outlays by agency. Not used: functions (Table 9) map better to Social Security, Medicare, defense and net interest."
+      },
+      "series": {
+        "borrowing": "Table 1 current_month_dfct_sur_amt",
+        "receipts": "Table 1 current_month_gross_rcpt_amt",
+        "spending": "Table 1 current_month_gross_outly_amt",
+        "individualIncomeTax": "Table 9 Individual Income Taxes",
+        "payrollTaxes": "Table 9 Employment and General Retirement + Unemployment Insurance + Other Retirement",
+        "corporationTax": "Table 9 Corporation Income Taxes",
+        "customsDuties": "Table 9 Customs Duties",
+        "exciseTaxes": "Table 9 Excise Taxes",
+        "estateGiftTaxes": "Table 9 Estate and Gift Taxes",
+        "miscellaneousReceipts": "Table 9 Miscellaneous Receipts",
+        "socialSecurity": "Table 9 Social Security (function 650)",
+        "medicare": "Table 9 Medicare (function 570)",
+        "health": "Table 9 Health (function 550; mostly Medicaid)",
+        "defense": "Table 9 National Defense (function 050)",
+        "netInterest": "Table 9 Net Interest (function 900); can be negative in some Septembers",
+        "incomeSecurity": "Table 9 Income Security (function 600)",
+        "veterans": "Table 9 Veterans Benefits and Services (function 700)",
+        "otherOutlays": "Table 9 total net outlays less the seven named functions (derived; includes undistributed offsetting receipts)"
+      },
+      "validation": [
+        "Every Table 1 row: outlays - receipts = deficit within $100; month rows sum to the Year-to-Date row within $1,000 for each fiscal year in each statement.",
+        "Every Table 9 statement: receipt lines are exactly the nine known lines and outlay lines a subset of the 19 budget functions; lines sum to the section totals within $1,000.",
+        "Table 9 totals equal Table 1 first-published values to $10,000 (same statement) and newest Table 1 values within $2bn (revised path).",
+        "Output: contiguous months from October; identity spending - receipts = borrowing within $0.01m; receipt and outlay detail sum to totals; plausible USD million magnitudes."
+      ],
+      "implementedBy": "pipeline/us/fiscal.py (parse_table1, parse_table9, detail_month, release_dates)"
+    },
+    {
+      "id": "treasury-mspd",
+      "landingUrl": "https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/",
+      "downloadUrl": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/debt/mspd/mspd_table_1?filter=record_date:gte:2014-10-01&sort=record_date,src_line_nbr&page[size]=10000&page[number]=1",
+      "datasetId": "015-BFS-2014Q1-11",
+      "format": "JSON API; one row per security class plus 'Total Marketable', 'Total Nonmarketable' and 'Total Public Debt Outstanding' (security_class_desc '_'); USD million",
+      "latestObservation": "2026-09-30",
+      "frequency": "monthly, month-end (record_date is the calendar month end)",
+      "unit": "USD million (output USD billion)",
+      "scope": "Treasury securities; debt held by the public excludes intragovernmental holdings (trust funds) and agency debt",
+      "licence": {
+        "name": "Public domain (U.S. Government work, 17 U.S.C. 105)",
+        "url": "https://fiscaldata.treasury.gov/about-us/"
+      },
+      "alternatives": "Debt to the Penny (v2/accounting/od/debt_to_penny, debt_held_public_amt) gives the same month-end total to the dollar (checked for 2026-09-30) but is daily; MSPD is the official month-end statement and was preferred.",
+      "validation": [
+        "Total Marketable + Total Nonmarketable = Total Public Debt Outstanding within $3m (lines are rounded independently, differences up to $2m observed).",
+        "0 < debt held by the public <= gross debt."
+      ],
+      "implementedBy": "pipeline/us/fiscal.py parse_mspd"
+    },
+    {
+      "id": "bea-gdp-nsa",
+      "producer": "U.S. Bureau of Economic Analysis",
+      "landingUrl": "https://fred.stlouisfed.org/series/NA000334Q",
+      "downloadUrl": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NA000334Q",
+      "unitCheckUrl": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GDP",
+      "format": "CSV 'observation_date,NA000334Q'; quarter start dates (YYYY-01-01 etc.); no metadata or release date",
+      "unit": "USD million, quarterly level, not seasonally adjusted (checked: four NSA quarters match the annual average of SAAR GDP in $ billion x 1000 within 1%)",
+      "latestObservation": "2026Q2 (as of 2026-10-26)",
+      "history": "1947Q1 onward; output four-quarter sums from 1999",
+      "licence": {
+        "name": "Public domain (BEA, U.S. Government work); FRED terms of use apply to the download",
+        "url": "https://fred.stlouisfed.org/legal/"
+      },
+      "access": "Works with the dashboard's plain requests User-Agent. curl with HTTP/2 had its stream reset; no browser user agent was used.",
+      "implementedBy": "pipeline/us/fiscal.py parse_fred, check_gdp_units, build_gdp"
+    },
+    {
+      "id": "cbo-economic-projections",
+      "producer": "Congressional Budget Office",
+      "landingUrl": "https://github.com/US-CBO/cbo-data",
+      "discoveryUrl": "https://raw.githubusercontent.com/US-CBO/cbo-data/main/catalog.json",
+      "downloadUrl": "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/economic/economic_projections/quarterly_2026-02.csv",
+      "schemaUrl": "https://raw.githubusercontent.com/US-CBO/cbo-data/main/data/economic/economic_projections/schema.json",
+      "format": "CSV long format date (YYYYqN), variable, value, estimate_type; variable 'gdp' is nominal GDP, SAAR, $ billion",
+      "latestVintage": "2026-02 (The Budget and Economic Outlook: 2026 to 2036); vintage chosen as the newest 'quarterly' file listed in catalog.json",
+      "use": "GDP publication gap only: a quarter BEA has not yet published (at most two) = BEA NSA value a year earlier x CBO gdp(q) / CBO gdp(q-4). Rows are flagged with forecastQuarters and disclosed in gdp.forecastExtension.",
+      "limitations": "cbo.gov returns 403 to automated requests, so the exact publication day is unavailable; publicationDate is the vintage month. The repository may lag cbo.gov.",
+      "licence": {
+        "name": "Public domain (U.S. Government work)",
+        "url": "https://github.com/US-CBO/cbo-data/blob/main/LICENSE.md"
+      },
+      "implementedBy": "pipeline/us/fiscal.py cbo_vintage, parse_cbo_gdp (growth applied with pipeline.obr_gdp.forecast_quarters)"
+    },
+    {
+      "id": "cbo-ten-year-budget",
+      "producer": "Congressional Budget Office",
+      "discoveryUrl": "https://raw.githubusercontent.com/US-CBO/cbo-data/main/catalog.json",
+      "use": "forecast group: names the latest CBO baseline vintage only. CBO and OMB publish annual fiscal-year projections, not a monthly profile, so forecast.json has status 'unavailable' and no cumulative path.",
+      "implementedBy": "pipeline/us/fiscal.py fetch_forecast"
+    }
+  ]
+}

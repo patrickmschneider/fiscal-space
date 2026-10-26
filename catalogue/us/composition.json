@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "group": "composition",
+  "module": "pipeline/us/composition.py",
+  "adapter": "fetch_composition",
+  "validator": "validate_composition",
+  "output": "public-us/data/composition.json",
+  "composition": {
+    "description": "Federal outlays by budget function (grouped into 12 categories) and federal receipts by source (10 categories), unified budget, actual fiscal years FY1940 onward, with shares of OMB fiscal-year GDP.",
+    "sources": [
+      {
+        "id": "omb-historical-tables",
+        "landingUrl": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+        "discovery": "Scrape the landing page for https://www.whitehouse.gov/wp-content/uploads/YYYY/MM/histNNzN_fyYYYY.xlsx links; every linked table must share one budget year (edition). Publication date is the page's dateModified.",
+        "edition": "Budget of the U.S. Government, Fiscal Year 2027 (Historical Tables uploaded 2026-04)",
+        "downloadUrls": {
+          "table1.1": "https://www.whitehouse.gov/wp-content/uploads/2026/04/hist01z1_fy2027.xlsx",
+          "table1.2": "https://www.whitehouse.gov/wp-content/uploads/2026/04/hist01z2_fy2027.xlsx",
+          "table2.1": "https://www.whitehouse.gov/wp-content/uploads/2026/04/hist02z1_fy2027.xlsx",
+          "table2.4": "https://www.whitehouse.gov/wp-content/uploads/2026/04/hist02z4_fy2027.xlsx",
+          "table2.5": "https://www.whitehouse.gov/wp-content/uploads/2026/04/hist02z5_fy2027.xlsx",
+          "table3.1": "https://www.whitehouse.gov/wp-content/uploads/2026/04/hist03z1_fy2027.xlsx"
+        },
+        "tables": {
+          "1.1": "Summary of receipts, outlays and surpluses or deficits, $ million (actuals only; defines the last actual year and cross-checks totals)",
+          "1.2": "Same as % of GDP, with fiscal-year GDP in $ billion (GDP denominator; cross-check of total shares within 0.05 pp)",
+          "2.1": "Receipts by source, $ million (years in rows; actuals then 'YYYY estimate' rows)",
+          "2.4": "Composition of social insurance and retirement receipts and of excise taxes (years in columns): OASI, DI, HI",
+          "2.5": "Composition of 'other receipts': estate and gift taxes, customs duties and fees, Federal Reserve deposits, all other",
+          "3.1": "Outlays by superfunction and function, $ million (years in columns; 'YYYY estimate' columns follow actuals)"
+        },
+        "format": "xlsx, one sheet 'Table'; nil shown as '..........'; '*' / '-*' = under $500 thousand (read as 0)",
+        "publicationDate": "2026-04-03",
+        "nextRelease": "With the FY2028 President's Budget (normally February; timing varies)",
+        "latestObservation": "2024-25 (FY2025)",
+        "history": "FY1940 (1939-40) to FY2025 (2024-25); the 1976 transition quarter (TQ) is excluded",
+        "frequency": "annual (each budget edition)",
+        "unit": "US$ million, current dollars",
+        "basis": "Federal unified budget (on- and off-budget), cash basis",
+        "licence": {
+          "name": "Public domain (U.S. Government work, 17 U.S.C. 105)",
+          "url": "https://www.whitehouse.gov/copyright/"
+        },
+        "series": {
+          "functions": {
+            "National defense": ["050 National Defense"],
+            "Social Security": ["650 Social Security"],
+            "Medicare": ["570 Medicare"],
+            "Health (Medicaid and other)": ["550 Health"],
+            "Income security": ["600 Income Security"],
+            "Veterans benefits and services": ["700 Veterans Benefits and Services"],
+            "Education, training, employment and social services": ["500"],
+            "Transportation": ["400"],
+            "Commerce and housing credit": ["370"],
+            "Other functions": ["270 Energy", "300 Natural Resources and Environment", "450 Community and Regional Development", "150 International Affairs", "250 General Science, Space, and Technology", "350 Agriculture", "750 Administration of Justice", "800 General Government", "920 Allowances"],
+            "Net interest": ["900 Net Interest"],
+            "Undistributed offsetting receipts": ["950 (negative)"]
+          },
+          "receipts": {
+            "Individual income taxes": "Table 2.1",
+            "Corporation income taxes": "Table 2.1",
+            "Social Security payroll taxes (OASDI)": "Table 2.4 OASI federal funds + OASI trust funds + DI",
+            "Medicare payroll taxes (hospital insurance)": "Table 2.4 HI",
+            "Other social insurance and retirement receipts": "derived: Table 2.1 social insurance total less OASDI and HI (unemployment insurance, railroad retirement, federal employee retirement)",
+            "Excise taxes": "Table 2.1",
+            "Customs duties and fees": "Table 2.5",
+            "Estate and gift taxes": "Table 2.5",
+            "Federal Reserve deposits of earnings": "Table 2.5",
+            "Other miscellaneous receipts": "Table 2.5 miscellaneous receipts, all other"
+          },
+          "taxTotal": "Total receipts less Federal Reserve deposits and other miscellaneous receipts",
+          "gdp": "Table 1.2 GDP (in billions of dollars) x 1000, fiscal-year basis"
+        }
+      },
+      {
+        "id": "cbo-data",
+        "landingUrl": "https://github.com/US-CBO/cbo-data",
+        "status": "Not used. OMB Historical Tables give functional outlays and receipts by source in one internally consistent edition with its own fiscal-year GDP; CBO's mandatory/discretionary/net interest split is an economic-type breakdown, not functions. cbo.gov blocks automated access."
+      }
+    ],
+    "validation": [
+      "Landing page links must all be from one edition (fyYYYY) and include Tables 1.1, 1.2, 2.1, 2.4, 2.5 and 3.1.",
+      "Only columns/rows whose year is not labelled 'estimate' are kept; estimates must follow all actuals; actual years in 2.1, 2.4, 2.5 and 3.1 must equal those in Table 1.1 (actuals only), contiguous from FY1940.",
+      "Table 3.1 superfunctions reconcile to their functions and the grouped functions reconcile to total federal outlays within $5m; any non-zero residual is shown as an explicit 'Rounding adjustment' item.",
+      "Receipts: Table 2.1 sources sum to total receipts; Table 2.5 total equals Table 2.1 'Other'; Table 2.5 parts sum to its total; Table 2.4 social insurance total equals Table 2.1; residual <= $5m becomes a rounding item.",
+      "Totals equal Table 1.1 within $2m; derived total shares of GDP equal OMB Table 1.2 rounded shares within 0.051 pp.",
+      "Validator: fixed category names and order, no negative items except categories OMB legitimately reports net negative (veterans, education, commerce and housing credit, other functions, undistributed offsetting receipts <= 0), GDP shares consistent with stored GDP, taxTotal consistent, latest year earlier than the edition's budget year, complete source metadata."
+    ],
+    "caveats": [
+      "Federal government only; state and local governments are excluded, and grants to states are counted in the paying federal function (Medicaid in Health, highway grants in Transportation).",
+      "Cash budget concepts, not national accounts (NIPA) measures.",
+      "Each budget edition can revise history; the dataset is one edition and is not spliced across editions.",
+      "Fiscal years ran July-June until FY1976 and October-September from FY1977; the July-September 1976 transition quarter is omitted, so FY1976 (1975-76) and FY1977 (1976-77) are adjacent 12-month years with a three-month gap between them.",
+      "No social-protection breakdown (the UK-specific socialProtection field is omitted); Social Security, Medicare, Health and Income security are already top-level categories.",
+      "Year labels use the start calendar year: FY2025 is '2024-25'."
+    ]
+  }
+}

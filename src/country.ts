@@ -1,6 +1,6 @@
-/** Country edition chosen at build time (`vite --mode au`). UK values reproduce the original wording exactly. */
-export type CountryId='uk'|'au';
-export const COUNTRY:CountryId=import.meta.env.VITE_COUNTRY==='au'?'au':'uk';
+/** Country edition chosen at build time (`vite --mode au|us`). UK values reproduce the original wording exactly. */
+export type CountryId='uk'|'au'|'us';
+export const COUNTRY:CountryId=import.meta.env.VITE_COUNTRY==='au'?'au':import.meta.env.VITE_COUNTRY==='us'?'us':'uk';
 
 const uk={
  id:'uk' as CountryId,
@@ -55,16 +55,49 @@ const au:Country={
  preCovidYear:'2018-19',
 };
 
-export const C:Country=COUNTRY==='au'?au:uk;
+const us:Country={
+ ...uk,
+ id:'us',
+ name:'US',possessive:'America’s',
+ tagline:'A GUIDE TO THE US FEDERAL FINANCES',
+ currency:'$',locale:'en-US',timeZone:'America/New_York',
+ fyStartMonth:10, // October–September; FY2026 runs October 2025 to September 2026
+ fyMonths:'October–September',fyFirstMonth:'October',
+ statAgency:'Treasury',forecaster:'CBO',debtAgency:'Treasury',centralBank:'Federal Reserve',taxAgency:'Treasury',
+ bond:'Treasury',bonds:'Treasuries',Bond:'Treasury',Bonds:'Treasuries',
+ borrowing:'Deficit',borrowingMeasure:'unified deficit',borrowingLong:'the federal deficit',
+ receipts:'Receipts',spending:'Outlays',spendingShort:'Outlays',
+ debt:'Debt held by the public',debtShort:'Debt held by the public',debtMeasure:'debt held by the public',
+ scopeShort:'Federal government, unified budget',
+ forecastLabel:'CBO projection',
+ pricingEyebrow:'MARKET PRICING · US TREASURIES',
+ curveNote:'US Treasury daily par yield curves (bond-equivalent, semiannual), not zero-coupon spot rates. Only matching published dates and tenors are compared; missing observations are not interpolated.',
+ realCurves:true,
+ receiptSeries:['individualIncomeTax','payrollTaxes','corporationTax','customsDuties','exciseTaxes','estateGiftTaxes','miscellaneousReceipts'],receiptSeriesNote:'Income, payroll, corporation, excise, estate and gift taxes, customs duties and other receipts',
+ spendSeries:['socialSecurity','medicare','health','defense','netInterest','incomeSecurity','veterans','otherOutlays'],spendSeriesNote:'Social Security, Medicare, health, defense, net interest, income security, veterans and other outlays',
+ flowSummary:'The gap between outlays and receipts is the unified federal deficit, including off-budget Social Security and the Postal Service. Both series come from the Monthly Treasury Statement.',
+ officialRatio:'official CBO or OMB ratio',
+ // FY2019 ends September 2019, before the pandemic response.
+ preCovidYear:'2018-19',
+};
 
-/** Inline country wording: the UK text is kept verbatim beside its Australian counterpart. */
-export function local<T>(ukValue:T,auValue:T):T{return C.id==='au'?auValue:ukValue;}
+export const C:Country=COUNTRY==='au'?au:COUNTRY==='us'?us:uk;
+
+/** Inline country wording: the UK text is kept verbatim beside its Australian and US counterparts. */
+export function local<T>(ukValue:T,auValue:T,usValue:T):T{return C.id==='au'?auValue:C.id==='us'?usValue:ukValue;}
+const US_SPELLING:[RegExp,string][]=[[/annualis/g,'annualiz'],[/labelled/g,'labeled'],[/behaviour/g,'behavior'],[/centre/g,'center'],[/programme/g,'program'],[/stabilis/g,'stabiliz'],[/modelled/g,'modeled']];
+/** US wording: 'fiscal year' where the UK and Australia say 'financial year', and US spelling of shared text. */
+export function fyTerm(text:string):string{return C.id==='us'?US_SPELLING.reduce((t,[from,to])=>t.replace(from,to),text.replace(/(F|f)inancial([- ])year/g,(_,f:string,sep:string)=>`${f==='F'?'Fiscal':'fiscal'}${sep}year`)):text;}
+/** US fiscal years are named by their final calendar year: '2025-26' is FY2026. Other editions keep 'YYYY-YY'. */
+export function fyDisplay(label:string):string{const m=/^(\d{4})[-–](\d{2})$/.exec(label);return C.id==='us'&&m&&(Number(m[1])+1)%100===Number(m[2])?`FY${Number(m[1])+1}`:label;}
 /** Calendar month that ends the financial year: 3 (March) or 6 (June). */
 export const fyEndMonth=(C.fyStartMonth+10)%12+1;
 export const fyEndSuffix=`-${String(fyEndMonth).padStart(2,'0')}`;
 
 /** Both editions are published together: the UK at the site root and Australia beneath it at au/. */
+const root=COUNTRY==='uk'?'./':'../';
 export const EDITIONS:{id:CountryId;label:string;name?:string;path:string}[]=[
- {id:'uk',label:'UK',path:COUNTRY==='uk'?'./':'../'},
- {id:'au',label:'AUS',name:'Australia',path:COUNTRY==='uk'?'au/':'./'},
+ {id:'uk',label:'UK',path:root},
+ {id:'au',label:'AUS',name:'Australia',path:COUNTRY==='au'?'./':`${root}au/`},
+ {id:'us',label:'US',name:'United States',path:COUNTRY==='us'?'./':`${root}us/`},
 ];

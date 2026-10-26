@@ -1,6 +1,6 @@
 """Manual refresh. Stage each source group, archive, then atomically promote.
 
-Usage: python3 -m pipeline.refresh [--country au] [--group fiscal] [--offline] [--validate]
+Usage: python3 -m pipeline.refresh [--country au|us] [--group fiscal] [--offline] [--validate]
 Failures leave last-good data intact and return nonzero while updating status.
 """
 import argparse
@@ -14,7 +14,7 @@ import requests
 
 ROOT=Path(__file__).resolve().parents[1]
 GROUPS=('fiscal','composition','forecast','debt','curve','outlook','reliefs')
-COUNTRIES=('uk','au')
+COUNTRIES=('uk','au','us')
 # The UK keeps its original paths so existing URLs, archives and tests are unchanged.
 def data_dir(root=ROOT,country='uk'):return Path(root)/('public/data' if country=='uk' else f'public-{country}/data')
 def release_prefix(country):return '' if country=='uk' else f'{country}-'
@@ -58,8 +58,8 @@ def validate(group,data,country='uk'):
     if data.get('schemaVersion')!=1:raise ValueError('Unsupported schemaVersion')
     encode(data) # Reject NaN/Infinity before any publication.
     if country!='uk':
-        from .au.validate import validate_au
-        return validate_au(group,data)
+        from importlib import import_module
+        return getattr(import_module(f'pipeline.{country}.validate'),f'validate_{country}')(group,data)
     if group=='fiscal':
         rows=data.get('observations',[])
         if len(rows)<24:raise ValueError('Insufficient fiscal observations')
@@ -97,15 +97,15 @@ def promote(group,data,fetcher,root=ROOT,changes=None,country='uk'):
     atomic(data_dir(root,country)/f'{group}.json',raw)
     return release
 
-def au_adapters():
-    from .au import ADAPTERS
-    return ADAPTERS
+def country_adapters(country):
+    from importlib import import_module
+    return import_module(f'pipeline.{country}').ADAPTERS
 
 def refresh(groups=GROUPS,offline=False,root=ROOT,adapters=None,country='uk'):
     root=Path(root);path=data_dir(root,country)/'manifest.json'
     manifest=json.loads(path.read_text()) if path.exists() else {'schemaVersion':1,'groups':{}}
     if manifest.get('schemaVersion')!=1:raise ValueError('Unsupported manifest schema')
-    if adapters is None and country!='uk':adapters=au_adapters()
+    if adapters is None and country!='uk':adapters=country_adapters(country)
     if adapters is None:
         from .fiscal import fetch_fiscal,fetch_composition
         from .dmo import fetch_debt

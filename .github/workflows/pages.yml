@@ -49,13 +49,15 @@ jobs:
           uk=$?
           python -m pipeline.refresh --country au
           au=$?
+          python -m pipeline.refresh --country us
+          us=$?
           set -e
-          echo "status=$((uk || au))" >> "$GITHUB_OUTPUT"
+          echo "status=$((uk || au || us))" >> "$GITHUB_OUTPUT"
       - name: Check GOV.UK for an OBR forecast newer than the pinned vintage
         if: steps.refresh.outcome != 'skipped'
         continue-on-error: true
         run: python -m pipeline.obr_check
-      - run: python -m pipeline.refresh --validate && python -m pipeline.refresh --country au --validate
+      - run: python -m pipeline.refresh --validate && python -m pipeline.refresh --country au --validate && python -m pipeline.refresh --country us --validate
       - name: Preserve compact data vintages before deployment
         shell: bash
         run: |
@@ -76,7 +78,7 @@ jobs:
           record['codeSha']=os.environ['UK_FISCAL_CODE_SHA']
           Path('public/deployment.json').write_text(json.dumps(record)+'\n')
           PY
-          git add public/data public-au/data
+          git add public/data public-au/data public-us/data
           if ! git diff --cached --quiet; then
             git commit -m 'Refresh official dashboard data'
             git push origin HEAD:main

@@ -58,3 +58,8 @@ export function socialProtectionItems(detail:{total:number;items:{name:string;va
  const components=[...detail.items,{name:'Revisions / rounding to current total',value:social.value-detail.total}];
  return components.map(i=>({...i,pctGdp:social.pctGdp!=null&&social.value?i.value/social.value*social.pctGdp:null}));
 }
+
+/** OMB publishes small rounding adjustments only in some years. Dropping them lets comparisons reconcile through the explicit rounding residual instead of treating absent years as missing data. */
+export function withoutRoundingAdjustment(year:BudgetYear):BudgetYear{
+ return year.items.some(i=>i.name==='Rounding adjustment')?{...year,items:year.items.filter(i=>i.name!=='Rounding adjustment')}:year;
+}

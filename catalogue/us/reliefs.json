@@ -1,0 +1,36 @@
+[
+  {
+    "id": "us-treasury-tax-expenditures",
+    "provider": "US Department of the Treasury, Office of Tax Policy (Office of Tax Analysis)",
+    "measure": "Income tax expenditures: receipt (revenue-loss) effect per provision, fiscal years, with corporate/individual split, budget function, descriptions and outlay effects of refundable credits",
+    "source": "Tax Expenditures, Fiscal Year {YYYY}: Excel workbook (Tables 1, 2a, 2b, 3, 4, 5) and PDF (methodology, descriptions, same tables), published with the President's Budget (Analytical Perspectives)",
+    "entryUrl": "https://home.treasury.gov/policy-issues/tax-policy/tax-expenditures",
+    "sampleUrl": "https://home.treasury.gov/system/files/131/Tax-Expenditures-FY2027.xlsx",
+    "units": "US$ million (published in multiples of $10 million)",
+    "frequency": "Annual, with the President's Budget",
+    "vintage": "FY2027 edition, Office of Tax Analysis, dated 16 December 2025 (PDF page headers). Law as enacted to 31 July 2025 (includes the 2025 reconciliation act: tips, overtime, car-loan interest, senior deduction, Trump Accounts); FY2026 Mid-Session Review economic assumptions. 175 provisions, FY2025-FY2035 plus 2026-2035 total.",
+    "releaseDate": "Document date parsed from the PDF page headers ('Office of Tax Analysis / December 16, 2025'); the workbook and PDF carry no other publication date (server Last-Modified 19 Aug 2026 reflects a re-upload).",
+    "transformations": [
+      "Discover the latest edition from the landing page: highest FY among /system/files/131/Tax-Expenditures-FY{YYYY}[-update].xlsx|.pdf links; exactly one xlsx and one pdf required",
+      "Workbook Table 1: function headings (col A), subheadings (col B, ':'-terminated), provision rows (int number, name, 11 fiscal years, 10-year total); stop at 'Addendum: Aid to State and local governments' (duplicates); footnotes n/ with continuation rows",
+      "Strip footnote markers ('  1/ 4/') and stray ' .' from names; footnotes other than 1/ go to the item's notes",
+      "Fiscal year YYYY -> 'YYYY-1-YY' label (FY2026 -> '2025-26'), with fiscalYear 'FY2026' kept per estimate",
+      "Tables 2a/2b joined to Table 1 by normalised name (numbers are not reliable: FY2027 Table 2b numbers Tonnage tax as 85); corporateMillion/individualMillion; taxHead = which table is non-zero in any year",
+      "Table 5 outlays joined by number with name check; blank cells after a credit ends = 0; kept in outlayMillion, never added to costMillion",
+      "PDF text (pypdf): descriptions between 'Descriptions of Income Tax Provisions' and Table 1, numbered 1..N in sequence, title split at the em dash; page headers, footnotes and function headings with their intro paragraphs removed",
+      "Retirement spotlight: provisions under Table 1 subheading 'Net exclusion of pension contributions and earnings' (FY2027: 148-154)"
+    ],
+    "compatibility": "Receipt effects against a comprehensive-income (normal tax / reference tax law) baseline holding behaviour and the rest of the code fixed; not repeal revenue. Not additive (Treasury publishes no total). Income tax only (payroll and excise effects only in footnotes). Refundable credit outlays (EITC, CTC, premium tax credit) are in Table 5, outside the receipt figures. Differs from JCT estimates (different baseline and calendar vs fiscal timing). Provision numbers change between editions.",
+    "failure": "Reject if the landing page has no single xlsx+pdf pair for the latest FY; sheet titles/units/years change (years must be FY-2..FY+8); any non-numeric value; 10-year column != sum; Table 1 != 2a + 2b for any matched provision; more than 3 provisions missing from 2a/2b; workbook Table 1 differs from the PDF Table 1 in any value; PDF descriptions not exactly 1..N; more than 8 description titles dissimilar to workbook names; retirement group missing; fewer than 150 provisions; largest item outside $100bn-$800bn; derived total outside $0.5-10 trillion. Keep last verified payload.",
+    "validation": "Live run 2026-10-26 (FY2027 edition): 175 provisions; Table 1 = 2a + 2b exactly for all; workbook = PDF Table 1 for every value; FY2026 largest: employer health insurance exclusion $295.66bn (Treasury FAQ: $296bn), net imputed rent $157.41bn, defined contribution plans $156.48bn, capital gains $135.34bn (FAQ matches). Derived FY2026 sum of receipt effects $2,022.3bn; outlays $219.3bn (23 provisions). Source issues recorded in sourceIssues: Table 2b misnumbers Tonnage tax as 85; Table 1 footnote 1/ and Table 5 differ for provisions 119 (adoption credit: in Table 5, not footnoted) and 121 (dependent care credit: footnoted, not in Table 5).",
+    "licence": "Public domain: US Government work (17 U.S.C. 105). Attribute 'US Department of the Treasury, Office of Tax Analysis'.",
+    "alternatives": "Joint Committee on Taxation, 'Estimates of Federal Tax Expenditures' (jct.gov, JCX series, PDF only; five-year window). Not used: jct.gov returned HTTP 403 to the project's identified user agent on 2026-10-26 (bot protection; not bypassed), it publishes PDF tables only, and Treasury's FY2027 edition is current with a longer window and a machine-readable workbook.",
+    "implementation": {
+      "adapter": "pipeline/us/reliefs.py fetch_reliefs / validate_reliefs",
+      "group": "reliefs",
+      "output": "public-us/data/reliefs.json",
+      "status": "implemented",
+      "notes": "Schema follows the Australian TEIS reliefs.json: reliefs[] with estimates[{year,costMillion,status,isForecast,...}], aggregate (null costMillion), derivedTotals (all, byTaxHead, plus outlays), and a 'retirement' spotlight with the same shape as AU 'superannuation' ({basis, codes, totals, note}). Extra per-estimate fields: fiscalYear, corporateMillion, individualMillion, outlayMillion. Extra per-item fields: provisionNumber, budgetFunction (= functionalCategory), tableSubheading, normalTaxMethod, hasOutlayEffect, splitDerived, descriptionTitle. The first year (latest completed FY at publication) is 'estimate'; later years 'forecast'. New editions are discovered automatically and must pass all checks."
+    }
+  }
+]

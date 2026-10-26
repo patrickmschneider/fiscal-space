@@ -1,0 +1,49 @@
+{
+  "provider": "U.S. Department of the Treasury",
+  "measure": "Daily Treasury par yield curves: nominal (1 month to 30 years) and real/TIPS (5 to 30 years); derived par breakeven inflation at 5, 7, 10, 20 and 30 years",
+  "entryUrl": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve",
+  "realEntryUrl": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_real_yield_curve",
+  "downloadUrlPattern": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{year}/all?type={daily_treasury_yield_curve|daily_treasury_real_yield_curve}&field_tdr_date_value={year}&page&_format=csv",
+  "downloadUrls": [
+    "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all?type=daily_treasury_yield_curve&field_tdr_date_value=2026&page&_format=csv",
+    "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all?type=daily_treasury_real_yield_curve&field_tdr_date_value=2026&page&_format=csv"
+  ],
+  "methodologyUrls": [
+    "https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology"
+  ],
+  "series": {
+    "nominalPar": {
+      "file": "daily_treasury_yield_curve (one CSV per calendar year, newest date first)",
+      "columns": "Date (MM/DD/YYYY), then 1 Mo, 1.5 Month, 2 Mo, 3 Mo, 4 Mo, 6 Mo, 1 Yr, 2 Yr, 3 Yr, 5 Yr, 7 Yr, 10 Yr, 20 Yr, 30 Yr",
+      "tenorHistory": "2-month column from 2018 file (blank before 2018-10-16); 4-month from 2022 file (blank before 2022-10-19); 1.5-month from 2025 file (blank before 2025-02-18). 30-year not published 2002-2006 (2003 file has no 30 Yr column; early-2006 cells blank).",
+      "tenorAxis": "Month tenors converted to years as months/12 rounded to 6 decimals (0.083333, 0.125, 0.166667, 0.25, 0.333333, 0.5)"
+    },
+    "realPar": {
+      "file": "daily_treasury_real_yield_curve",
+      "columns": "Date, 5 YR, 7 YR, 10 YR, 20 YR, 30 YR (30-year absent in older files, e.g. 2006; present in 2017+ files)",
+      "history": "from 2003-01-02"
+    },
+    "breakevens": "Derived: nominal par minus real par at 5/7/10/20/30 years on matched dates; null where either is blank"
+  },
+  "units": "Percent per annum; bond-equivalent (semiannual compounding) par yields; tenor in years",
+  "frequency": "Business daily",
+  "releaseLag": "Published each business day after market close (data as of roughly 3:30pm ET); the file checked 2026-10-26 contained data to 2026-10-23 (Friday).",
+  "transformation": "Fetch one nominal and one real CSV per calendar year from 2017 to the current year (20 files). Blank cells null; dates with no values excluded; no interpolation. Curves: every business day in the latest 3*366 days, earlier back to January 2017 thinned to the last observation of each month (dailyFrom field). benchmarks (nominal2y/5y/10y/30y, indexed10y = 10-year real par) and breakeven10y (nominal10y - indexed10y on matched dates) kept for every business day since 2017-01-01. Breakevens rounded to 1e-6.",
+  "status": "implemented 2026-10-26; live run: 832 curve dates 2017-01-31 to 2026-10-23 (daily from 2023-10-21), 2,453 daily benchmark rows from 2017-01-03; public-us/data/curve.json about 0.97 MB (UK 2.4 MB, AU 1.3 MB)",
+  "accessEvidence": {
+    "checkedAt": "2026-10-26",
+    "result": "All yearly CSV URLs 2017-2026 (plus 2003 and 2006 samples) returned CSV with the project-identified User-Agent. Responses can be slow (some >30 s); no bot protection encountered."
+  },
+  "validation": "tests/test_us_curve.py on trimmed real Treasury CSV fixtures (tests/fixtures/us/curve). Parser: Date header, recognised tenor labels within the expected set per curve kind, MM/DD/YYYY dates within the requested year, unique dates, consistent row width, numeric rates in -5..25% (non-numeric such as N/A rejected), HTML responses rejected. Validator: >=200 nominal/real/breakeven curve dates, dates sorted and unique, tenors strictly increasing and in the expected set, real dates a subset of nominal dates with at most 2% gaps and the same latest date, breakeven curve dates exactly the matched dates and values equal nominal minus real within 1e-6, latest curve has 2/10/30-year yields, >=1000 benchmark rows consistent with the curves, breakeven10y exactly matched dates and equal nominal10y minus indexed10y.",
+  "licenceNote": "U.S. Government work; Treasury interest rate data are in the public domain (17 U.S.C. 105). No Treasury endorsement implied.",
+  "attribution": "Source: U.S. Department of the Treasury, Daily Treasury Par Yield Curve Rates and Daily Treasury Par Real Yield Curve Rates",
+  "failure": "Keep last verified payload and mark refresh failure; never substitute other curves (e.g. Fed H.15, FRED, zero-coupon GSW) or fabricated values.",
+  "interpretation": "These are PAR yields (coupon equal to yield so the bond prices at par), read from Treasury's monotone convex spline through on-the-run bid prices, quoted bond-equivalent with semiannual compounding. They are NOT zero-coupon spot rates and are not directly comparable with the Bank of England or RBA fitted spot curves. The breakeven (nominal par minus TIPS real par) approximates CPI-U inflation compensation; it includes inflation risk premia and relative TIPS liquidity premia and is not an inflation forecast. Treasury's real curve is fitted to TIPS and reflects the CPI-U indexation lag.",
+  "reuseDecision": null,
+  "output": {
+    "file": "public-us/data/curve.json",
+    "adapter": "pipeline.us.curve.fetch_curve",
+    "validator": "pipeline.us.curve.validate_curve",
+    "fields": "UK curve.json shape (curves, realCurves, breakevenCurves, realAsOf, breakevenAsOf) plus AU-style extensions benchmarks, benchmarkSeries, breakeven10y, breakeven10yBasis, benchmarksAsOf, dailyFrom. Source ids: ust-par-nominal, ust-par-real."
+  }
+}

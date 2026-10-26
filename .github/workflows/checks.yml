@@ -23,4 +23,5 @@ jobs:
       - run: npm test && npm run test:data
       - run: python -m pipeline.refresh --validate
       - run: python -m pipeline.refresh --country au --validate
+      - run: python -m pipeline.refresh --country us --validate
       - run: npm run build

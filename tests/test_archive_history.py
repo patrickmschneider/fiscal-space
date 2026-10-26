@@ -123,3 +123,19 @@ class AustralianHistoryTests(unittest.TestCase):
             restore(destination, snapshot, root=root)
             self.assertEqual(json.loads((root / 'public-au/data/fiscal.json').read_text())['name'], 'fiscal')
             self.assertEqual(json.loads((root / 'public/data/fiscal.json').read_text())['country'], 'uk')
+
+    def test_us_edition_is_archived_and_restored_beside_the_others(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root, destination = Path(temp) / 'project', Path(temp) / 'history'
+            for folder in ('public/data', 'public-au/data', 'public-us/data'):
+                (root / folder).mkdir(parents=True)
+            for name in (*CORE_GROUPS, 'manifest'):
+                for folder, country in (('public/data', 'uk'), ('public-au/data', 'au'), ('public-us/data', 'us')):
+                    (root / f'{folder}/{name}.json').write_bytes(encode({'country': country, 'name': name}))
+            snapshot = archive(destination, 'c' * 40, root=root)['snapshotId']
+            record = json.loads((destination / f'deployments/{snapshot}.json').read_bytes())
+            self.assertTrue(record['files']['us/fiscal.json']['path'].startswith('releases/us-fiscal-'))
+            (root / 'public-us/data/debt.json').write_bytes(encode({'country': 'us', 'name': 'changed'}))
+            restore(destination, snapshot, root=root)
+            self.assertEqual(json.loads((root / 'public-us/data/debt.json').read_text()), {'country': 'us', 'name': 'debt'})
+            self.assertEqual(json.loads((root / 'public-au/data/debt.json').read_text())['country'], 'au')

@@ -15,10 +15,10 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 CORE_GROUPS = ('fiscal', 'composition', 'forecast', 'debt', 'curve')
 GROUPS = (*CORE_GROUPS, 'outlook', 'reliefs', 'monitor')
-RELEASE = re.compile(r'((?:au-)?(?:' + '|'.join(GROUPS) + r'))-([a-f0-9]{64})\.json$')
-# The Australian edition's saved data; archived alongside the UK bundle under an au/ prefix.
-AU_DATA = 'public-au/data'
-AU_FILES = {f'au/{name}.json' for name in (*GROUPS, 'manifest')}
+# Other editions' saved data (public-<country>/data), archived beside the UK bundle under a <country>/ prefix.
+EDITIONS = ('au', 'us')
+RELEASE = re.compile(r'((?:(?:' + '|'.join(EDITIONS) + r')-)?(?:' + '|'.join(GROUPS) + r'))-([a-f0-9]{64})\.json$')
+EDITION_FILES = {f'{country}/{name}.json' for country in EDITIONS for name in (*GROUPS, 'manifest')}
 
 
 def object_stem(name):
@@ -26,7 +26,8 @@ def object_stem(name):
 
 
 def saved_path(root, name):
-    return root / AU_DATA / name[3:] if name.startswith('au/') else root / 'public/data' / name
+    country, _, rest = name.partition('/')
+    return root / f'public-{country}/data' / rest if rest else root / 'public/data' / name
 
 
 def digest(raw):
@@ -83,7 +84,7 @@ def archive(destination, code_sha, migrate_local=False, root=ROOT):
             if metadata_path.exists():
                 metadata_raw = metadata_path.read_bytes()
                 metadata = json.loads(metadata_raw)
-                if metadata.get('group') != group.removeprefix('au-') or metadata.get('releaseId') != release_id:
+                if metadata.get('group') != re.sub(r'^(?:' + '|'.join(EDITIONS) + r')-', '', group) or metadata.get('releaseId') != release_id:
                     raise ValueError(f'Local metadata mismatch: {metadata_path.name}')
                 compressed_object(destination, 'metadata',
                                   f'{group}-{release_id}-{digest(metadata_raw)}', metadata_raw)
@@ -98,7 +99,7 @@ def archive(destination, code_sha, migrate_local=False, root=ROOT):
         raw = source.read_bytes()
         files[f'{name}.json'] = compressed_object(destination, 'releases',
                                                    f'{name}-{digest(raw)}', raw)
-    for name in sorted(AU_FILES):
+    for name in sorted(EDITION_FILES):
         source = saved_path(root, name)
         if source.exists():
             raw = source.read_bytes()
@@ -129,7 +130,7 @@ def restore(destination, snapshot_id, root=ROOT, code_sha=None):
     if code_sha is not None and code_sha != record['codeSha']:
         raise ValueError(f"Snapshot requires code SHA {record['codeSha']}")
     expected = {f'{name}.json' for name in (*CORE_GROUPS, 'manifest')}
-    allowed = {f'{name}.json' for name in (*GROUPS, 'manifest')} | AU_FILES
+    allowed = {f'{name}.json' for name in (*GROUPS, 'manifest')} | EDITION_FILES
     if not expected.issubset(record['files']) or not set(record['files']).issubset(allowed):
         raise ValueError('Snapshot does not contain the expected dashboard bundle')
     pending = {}
