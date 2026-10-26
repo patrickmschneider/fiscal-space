@@ -47,8 +47,11 @@ jobs:
           set +e
           python -m pipeline.refresh
           uk=$?
-          python -m pipeline.refresh --country au
+          python -m pipeline.refresh --country au --group fiscal --group composition --group forecast --group curve --group outlook --group reliefs
           au=$?
+          # AOFM blocks hosted runners, so Australian debt is refreshed from a local run; a failure here keeps
+          # the last saved data and shows as stale on the site, but does not fail the refresh-health alarm.
+          python -m pipeline.refresh --country au --group debt || echo "::notice::Australian debt not refreshed (AOFM blocks hosted runners); last saved data retained."
           python -m pipeline.refresh --country us
           us=$?
           set -e
