@@ -85,6 +85,19 @@ export function isOverdue(group:string,asOf:string,now=new Date()):boolean {
   let weekdays=0;for(let d=new Date(end);d<now;d.setUTCDate(d.getUTCDate()+1)){if(d.getUTCDay()!==0&&d.getUTCDay()!==6)weekdays++;if(weekdays>5)return true;}return false;
 }
 
+/** Rate at a maturity: the published point if there is one, otherwise linear interpolation inside the curve's range. */
+export function rateAt(curve:CurveObservation|undefined,tenor:number):number|null{if(!curve)return null;const exact=curve.points.find(p=>p.tenor===tenor);if(exact)return exact.rate;const pts=curve.points.filter(p=>p.rate!=null).sort((a,b)=>a.tenor-b.tenor);const i=pts.findIndex(p=>p.tenor>tenor);if(i<=0)return null;const a=pts[i-1],b=pts[i];return a.rate!+(b.rate!-a.rate!)*(tenor-a.tenor)/(b.tenor-a.tenor);}
+/** Chart rows for two dates (and an optional overlay) whose maturities may differ, as for Australian indexed bonds.
+ * `plot` keeps each curve's own maturities; `change` is at the current maturities, interpolating the comparison curve. */
+export function curveRows(current:CurveObservation|undefined,comparison:CurveObservation|undefined,overlay?:CurveObservation){
+ const own=(c:CurveObservation|undefined,t:number)=>c?.points.find(p=>p.tenor===t)?.rate??null;
+ const change=(current?.points||[]).map(p=>{const old=rateAt(comparison,p.tenor);return {tenor:p.tenor,current:p.rate,comparison:old,change:p.rate==null||old==null?null:(p.rate-old)*100};});
+ const tenors=[...new Set([...(current?.points||[]),...(comparison?.points||[]),...(overlay?.points||[])].map(p=>p.tenor))].sort((a,b)=>a-b);
+ const merged=tenors.length>(current?.points.length||0);
+ const plot=merged?tenors.map(t=>({tenor:t,current:own(current,t),comparison:own(comparison,t),...(overlay?{frb:own(overlay,t)}:{})})):change;
+ const interpolated=!!comparison&&(current?.points||[]).some(p=>!comparison.points.some(q=>q.tenor===p.tenor));
+ return {plot,change,merged,interpolated};
+}
 /** Latest overlay curve on or before `date`, at most ten days earlier (the Fed TIPS curve lags Treasury by about a week). */
 export function overlayCurve(curves:CurveObservation[]|undefined,date:string){const floor=new Date(Date.parse(`${date}T00:00:00Z`)-10*864e5).toISOString().slice(0,10);return curves?.filter(c=>c.date<=date&&c.date>=floor).at(-1);}
 

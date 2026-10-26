@@ -21,8 +21,9 @@ test('Australian edition loads its own data, pages and charts beneath au/',async
  await expect(page.getByRole('heading',{name:'The stock. The cost. The calendar.'})).toBeVisible();
  await expect(page.getByText('Bonds outstanding · face value')).toBeVisible();
  await page.goto('./au/?page=pricing');
- await expect(page.locator('[aria-labelledby="yield-curve-title"] .recharts-line-curve').first()).toBeVisible();
- await expect(page.locator('[aria-labelledby="breakeven-10y-title"] .recharts-line-curve').first()).toBeVisible();
+ for(const id of ['yield-curve','real-curve','breakeven'])await expect(page.locator(`[aria-labelledby="${id}-title"] .recharts-line-curve`).first()).toBeVisible();
+ await expect(page.getByRole('heading',{name:'CPI breakeven inflation'})).toBeVisible();
+ await expect(page.locator('[aria-labelledby="breakeven-10y-title"]')).toHaveCount(0);
  const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Download Nominal bond yield curve CSV',exact:true}).click();
  const path=testInfo.outputPath('au-curve.csv');await (await pending).saveAs(path);
  const text=await fs.readFile(path,'utf8');expect(text).toContain('Reserve Bank of Australia');expect(text).not.toContain('Bank of England');

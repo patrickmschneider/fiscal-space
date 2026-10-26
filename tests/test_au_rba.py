@@ -3,15 +3,16 @@ import copy
 import unittest
 from pathlib import Path
 
-from pipeline.au.rba import F17_URL, F2_URL, fetch_curve, parse_f17, parse_f2, validate_curve
+from pipeline.au.rba import F16_URL, F17_URL, F2_URL, fetch_curve, indexed_curves, parse_f16, parse_f17, parse_f2, validate_curve
 
 FIXTURES = Path(__file__).parent / 'fixtures/au/rba'
 F17 = (FIXTURES / 'f17-yields.csv').read_bytes()
 F2 = (FIXTURES / 'f2-data.csv').read_bytes()
+F16 = (FIXTURES / 'f16-data.csv').read_bytes()
 
 
-def fetcher(f17=F17, f2=F2):
-    return lambda url, headers=None: {F17_URL: f17, F2_URL: f2}[url]
+def fetcher(f17=F17, f2=F2, f16=F16):
+    return lambda url, headers=None: {F17_URL: f17, F2_URL: f2, F16_URL: f16}[url]
 
 
 class RbaCurveTests(unittest.TestCase):
@@ -36,7 +37,8 @@ class RbaCurveTests(unittest.TestCase):
         d = self.data
         validate_curve(d)
         self.assertEqual((d['asOf'], d['benchmarksAsOf']), ('2026-09-30', '2026-10-07'))
-        self.assertEqual((d['realCurves'], d['breakevenCurves']), ([], []))
+        self.assertEqual(d['realAsOf'], '2026-09-30')
+        self.assertTrue({c['date'] for c in d['breakevenCurves']} <= {c['date'] for c in d['curves']})
         self.assertGreaterEqual(len(d['curves']), 200)
         self.assertAlmostEqual(d['breakeven10y'][-1]['value'], 5.404 - 3.002, places=12)
 
@@ -75,3 +77,26 @@ class RbaCurveTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class IndexedBondCurveTests(unittest.TestCase):
+    def test_real_and_breakeven_points_at_indexed_bond_maturities(self):
+        bonds, _ = parse_f16(F16)
+        real, breakeven = indexed_curves(bonds['2026-09-30'], '2026-09-30')
+        self.assertEqual(real[0], {'tenor': 1.1417, 'rate': 1.791})  # TIB 414, Nov 2027
+        self.assertEqual(len(real), 6)
+        self.assertEqual([p['tenor'] for p in breakeven], [p['tenor'] for p in real])
+        self.assertAlmostEqual(breakeven[-1]['rate'], 2.339956, places=6)  # Feb 2050 TIB against bracketing nominal bonds
+
+    def test_short_indexed_bonds_and_unbracketed_maturities_are_left_out(self):
+        day = {'nominal': [('2030-01-01', 4.0), ('2040-01-01', 5.0)], 'indexed': [('2027-03-01', 1.0), ('2035-01-01', 2.0), ('2045-01-01', 2.5)]}
+        real, breakeven = indexed_curves(day, '2026-09-30')
+        self.assertEqual(len(real), 2)  # March 2027 has under a year to run.
+        self.assertEqual(len(breakeven), 1)  # 2045 lies beyond the longest nominal bond.
+        self.assertAlmostEqual(breakeven[0]['rate'], 2.5, places=2)
+
+    def test_breakevens_must_sit_on_real_maturities(self):
+        data = copy.deepcopy(fetch_curve(fetcher()))
+        data['breakevenCurves'][-1]['points'][0]['tenor'] += 0.5
+        with self.assertRaisesRegex(ValueError, 'indexed-bond maturities|maturities invalid'):
+            validate_curve(data)
