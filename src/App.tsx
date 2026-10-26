@@ -118,7 +118,7 @@ function EditionSwitch(){
  const current=new URLSearchParams(location.search);const query=new URLSearchParams();
  for(const key of ['page','section','view'])if(current.get(key))query.set(key,current.get(key)!);
  const suffix=query.toString()?`?${query}`:'';
- return <div className="edition-switch" role="group" aria-label="Country edition">{EDITIONS.map(e=><a key={e.id} href={`${e.path}${suffix}`} aria-current={e.id===C.id?'page':undefined}>{e.label}</a>)}</div>;
+ return <div className="edition-switch" role="group" aria-label="Country edition">{EDITIONS.map(e=><a key={e.id} href={`${e.path}${suffix}`} aria-current={e.id===C.id?'page':undefined} aria-label={e.name}>{e.label}</a>)}</div>;
 }
 
 export default function App(){

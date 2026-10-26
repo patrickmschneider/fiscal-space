@@ -64,7 +64,7 @@ export const fyEndMonth=(C.fyStartMonth+10)%12+1;
 export const fyEndSuffix=`-${String(fyEndMonth).padStart(2,'0')}`;
 
 /** Both editions are published together: the UK at the site root and Australia beneath it at au/. */
-export const EDITIONS:{id:CountryId;label:string;path:string}[]=[
+export const EDITIONS:{id:CountryId;label:string;name?:string;path:string}[]=[
  {id:'uk',label:'UK',path:COUNTRY==='uk'?'./':'../'},
- {id:'au',label:'Australia',path:COUNTRY==='uk'?'au/':'./'},
+ {id:'au',label:'AUS',name:'Australia',path:COUNTRY==='uk'?'au/':'./'},
 ];
