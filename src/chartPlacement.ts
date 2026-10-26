@@ -28,3 +28,9 @@ export function publicationBoundary(labels:string[],publication:string,annual=fa
  const next=ends.findIndex(end=>end>=date);const index=next-1;
  return {index,fraction:(date-ends[index])/(ends[next]-ends[index])};
 }
+
+/** Pad the data range, then round both ends to a 1/2/2.5/5 step so every tick is an exact, cleanly labelled value. */
+export function axisTicks(values:number[],pad=0.15,count=5){if(!values.length)return null;const lo=Math.min(...values)-pad,hi=Math.max(...values)+pad;const raw=(hi-lo)/(count-1);const mag=10**Math.floor(Math.log10(raw));const step=[1,2,2.5,5,10].map(m=>m*mag).find(x=>x>=raw)!;const start=Math.floor(lo/step)*step,end=Math.ceil(hi/step)*step;const n=Math.round((end-start)/step);const ticks=Array.from({length:n+1},(_,i)=>Number((start+i*step).toFixed(10)));return {domain:[ticks[0],ticks[n]] as [number,number],ticks,digits:Math.max(0,-Math.floor(Math.log10(step)+1e-9))+(String(step/mag).includes('.')?1:0)};}
+
+/** Maturity axes: whole years from 0, in steps of 1, 2, 5 or 10 so there are at most eight intervals. */
+export function yearTicks(tenors:number[]){if(!tenors.length)return null;const max=Math.max(...tenors);const step=[1,2,5,10,20].find(s=>Math.ceil(max/s)<=8)||20;const end=Math.max(step,Math.ceil(max/step)*step);return {domain:[0,end] as [number,number],ticks:Array.from({length:end/step+1},(_,i)=>i*step)};}

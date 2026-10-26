@@ -137,3 +137,47 @@ class UsCurveTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+def with_frb(raw=None):
+    base = fetcher()
+    def fetch(url, headers=None):
+        if url == us_curve.FRB_URL:
+            return raw if raw is not None else (FIXTURES / 'feds200805-trimmed.csv').read_bytes()
+        return base(url, headers)
+    return fetch
+
+
+class FedTipsOverlayTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.data = fetch_curve(with_frb(), today=TODAY)
+
+    def test_overlay_kept_on_treasury_dates_only_with_2_to_20_year_par_points(self):
+        dates = [c['date'] for c in self.data['frbBreakevenCurves']]
+        self.assertEqual(dates, ['2017-01-04', '2017-12-29', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16'])
+        self.assertNotIn('2026-10-12', dates)  # Columbus Day: in the Fed file, no Treasury curve.
+        self.assertEqual(self.data['frbAsOf'], '2026-10-16')
+        latest = self.data['frbBreakevenCurves'][-1]['points']
+        self.assertEqual([p['tenor'] for p in latest], [float(t) for t in range(2, 21)])
+        self.assertEqual(latest[0]['rate'], 2.3649)  # BKEVENPY02 on 2026-10-16, rounded to 4 decimals.
+        self.assertIn('frb-tips', [s['id'] for s in self.data['sources']])
+        with small_thresholds():
+            validate_curve(self.data)
+
+    def test_overlay_failure_keeps_treasury_curves_and_is_recorded(self):
+        data = fetch_curve(with_frb(b'<html>maintenance</html>'), today=TODAY)
+        self.assertEqual(data['frbRealCurves'], [])
+        self.assertIn('Date header', data['frbError'])
+        self.assertTrue(data['curves'])
+        with small_thresholds():
+            validate_curve(data)
+            silent = {**data, 'frbError': None}
+            with self.assertRaisesRegex(ValueError, 'download failure'):
+                validate_curve(silent)
+
+    def test_overlay_dates_must_have_a_treasury_curve(self):
+        data = copy.deepcopy(self.data)
+        data['frbRealCurves'][-1]['date'] = '2026-10-17'
+        with small_thresholds(), self.assertRaisesRegex(ValueError, 'without a Treasury curve'):
+            validate_curve(data)

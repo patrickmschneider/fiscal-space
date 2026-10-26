@@ -12,6 +12,13 @@ that date; blank cells (including a new maturity's pre-introduction rows) stay n
 interpolated. Breakeven = nominal par minus real par at matched tenors (5, 7,
 10, 20, 30 years) on matched dates: an approximation of inflation
 compensation including inflation risk and relative liquidity premia.
+
+Overlay: the Federal Reserve Board staff TIPS curve (Gurkaynak, Sack and Wright,
+FEDS 2008-05) gives par real yields and par inflation compensation for every year
+from 2 to 20, filling the short end Treasury does not publish. It is a different
+fitted model, published with about a week's lag, so it is kept as separate series
+on the Treasury dates and is never mixed into the Treasury curves. If its download
+fails the Treasury curves still publish, with the failure recorded.
 """
 import csv
 import io
@@ -34,6 +41,9 @@ NOMINAL_MONTHS = (1, 1.5, 2, 3, 4, 6)
 NOMINAL_YEARS = (1, 2, 3, 5, 7, 10, 20, 30)
 REAL_YEARS = (5, 7, 10, 20, 30)
 BREAKEVEN_TENORS = (5.0, 7.0, 10.0, 20.0, 30.0)
+FRB_URL = 'https://www.federalreserve.gov/data/yield-curve-tables/feds200805.csv'
+FRB_PAGE = 'https://www.federalreserve.gov/data/tips-yield-curve-and-inflation-compensation.htm'
+FRB_TENORS = tuple(float(n) for n in range(2, 21))
 BENCHMARKS = {'nominal2y': ('nominal', 2.0), 'nominal5y': ('nominal', 5.0), 'nominal10y': ('nominal', 10.0), 'nominal30y': ('nominal', 30.0), 'indexed10y': ('real', 10.0)}
 
 
@@ -132,6 +142,38 @@ def benchmark_rows(nominal, real):
     return rows
 
 
+def parse_frb(raw):
+    """Fed TIPS file -> ({date: real par points}, {date: breakeven par points}), tenors 2-20 years."""
+    lines = raw.decode('utf-8-sig').splitlines()
+    start = next((i for i, line in enumerate(lines) if line.startswith('Date,')), None)
+    if start is None:
+        raise ValueError('Fed TIPS file has no Date header')
+    rows = csv.DictReader(lines[start:])
+    columns = {f'{prefix}{int(t):02d}' for prefix in ('TIPSPY', 'BKEVENPY') for t in FRB_TENORS}
+    if not columns <= set(rows.fieldnames or []):
+        raise ValueError('Fed TIPS file lacks par real yield or par inflation compensation columns')
+    real, breakeven = {}, {}
+    for row in rows:
+        day = date.fromisoformat(row['Date']).isoformat()
+        if day < START:
+            continue
+        for prefix, store in (('TIPSPY', real), ('BKEVENPY', breakeven)):
+            points = []
+            for t in FRB_TENORS:
+                text = row[f'{prefix}{int(t):02d}'].strip()
+                rate = None if text in ('', 'NA') else round(float(text), 4)
+                if rate is not None and not (LOW <= rate <= HIGH):
+                    raise ValueError(f'Implausible Fed TIPS {prefix} rate {rate} on {day}')
+                points.append({'tenor': t, 'rate': rate})
+            if any(p['rate'] is not None for p in points):
+                if day in store:
+                    raise ValueError(f'Duplicate Fed TIPS date {day}')
+                store[day] = points
+    if not real or not breakeven:
+        raise ValueError('Fed TIPS file has no observations in the retained range')
+    return real, breakeven
+
+
 def thin_dates(dates):
     """All dates in the latest ~3 years; before that the last observation of each month."""
     dates = sorted(dates)
@@ -162,6 +204,11 @@ def fetch_curve(fetch, today=None):
     keep, cutoff = thin_dates(nominal)
     def rows(curves):
         return [{'date': d, 'points': curves[d]} for d in keep if d in curves]
+    try:
+        frb_real, frb_breakeven = parse_frb(fetch(FRB_URL))
+        frb_error = None
+    except Exception as exc:  # The overlay is supplementary; the Treasury curves still publish.
+        frb_real, frb_breakeven, frb_error = {}, {}, str(exc)
     benchmarks = benchmark_rows(nominal, real)
     breakeven10y = [{'date': r['date'], 'value': round(r['nominal10y'] - r['indexed10y'], 6)}
                     for r in benchmarks if r['nominal10y'] is not None and r['indexed10y'] is not None]
@@ -176,8 +223,12 @@ def fetch_curve(fetch, today=None):
         'sources': [
             {'id': 'ust-par-nominal', 'publisher': 'U.S. Department of the Treasury', 'name': 'U.S. Treasury · Daily Treasury Par Yield Curve Rates', 'title': 'Daily Treasury par yield curve rates (nominal, 1 month to 30 years)', 'url': PAGE_URL, 'downloadUrls': urls['nominal'], 'licence': 'Public domain (U.S. Government work)', 'methodologyUrl': METHOD_URL, 'attribution': attribution},
             {'id': 'ust-par-real', 'publisher': 'U.S. Department of the Treasury', 'name': 'U.S. Treasury · Daily Treasury Par Real Yield Curve Rates', 'title': 'Daily Treasury par real yield curve rates (TIPS, 5 to 30 years)', 'url': REAL_PAGE_URL, 'downloadUrls': urls['real'], 'licence': 'Public domain (U.S. Government work)', 'methodologyUrl': METHOD_URL, 'attribution': attribution},
+            *([] if frb_error else [{'id': 'frb-tips', 'publisher': 'Federal Reserve Board', 'name': 'Federal Reserve Board · The TIPS Yield Curve and Inflation Compensation (staff estimates)', 'title': 'Gurkaynak, Sack and Wright TIPS yield curve: par real yields and par inflation compensation, 2 to 20 years', 'url': FRB_PAGE, 'downloadUrls': [FRB_URL], 'licence': 'Public domain (U.S. Government work); staff research product, not an official statistical release', 'attribution': 'Source: Federal Reserve Board, The TIPS Yield Curve and Inflation Compensation (Gurkaynak, Sack and Wright, FEDS 2008-05). Staff estimates, subject to delay and revision.'}]),
         ],
         'curves': rows(nominal), 'realCurves': rows(real), 'breakevenCurves': rows(breakevens),
+        'frbRealCurves': rows(frb_real), 'frbBreakevenCurves': rows(frb_breakeven),
+        'frbAsOf': max(d for d in keep if d in frb_breakeven) if frb_breakeven and any(d in frb_breakeven for d in keep) else None,
+        **({'frbError': frb_error} if frb_error else {}),
         'benchmarkSeries': {
             'nominal2y': {'seriesId': '2 Yr', 'label': 'US Treasury 2-year par yield (nominal)'},
             'nominal5y': {'seriesId': '5 Yr', 'label': 'US Treasury 5-year par yield (nominal)'},
@@ -192,6 +243,7 @@ def fetch_curve(fetch, today=None):
             'Curves are US Treasury par yield curves: the yield at which a hypothetical Treasury security priced at par would trade, read from Treasury\'s monotone convex spline fitted to bid-side prices of the most recently auctioned securities. Yields are bond-equivalent with semiannual compounding. They are par yields, not zero-coupon spot rates. Maturities under one year are shown in years (for example, 6 months = 0.5).',
             f'Every business day is shown from {long_date(cutoff)}; earlier dates back to January 2017 are thinned to the last observation of each month. Daily benchmark yields and the 10-year breakeven are kept for every business day since January 2017. Missing values are left blank, not interpolated; non-trading dates are excluded. Nominal maturities vary over time: 2-month from October 2018, 4-month from October 2022 and 1.5-month from February 2025. Before a maturity was introduced it is left blank, as in the Treasury files.',
             'Breakevens are a dashboard calculation: nominal par yield minus TIPS real par yield at matched 5, 7, 10, 20 and 30-year maturities on matching dates only. Because both are par yields on coupon-bearing securities rather than zero-coupon rates, this is an approximation of CPI-U inflation compensation; it includes inflation risk premia and relative liquidity premia (TIPS are less liquid) and is not an inflation forecast.',
+            'The dashed overlay on the real-yield and breakeven charts is the Federal Reserve Board staff TIPS curve (Gurkaynak, Sack and Wright): par real yields and par inflation compensation for each maturity from 2 to 20 years. It is a separately fitted model, not an official Federal Reserve statistic, and is published with about a week\'s lag, so each chart shows its latest date on or before the selected date. Its values differ from Treasury\'s at matching maturities because the two curves are fitted differently.' if not frb_error else f'The Federal Reserve Board staff TIPS curve overlay could not be refreshed ({frb_error}).',
             'Treasury publishes the curves each business day after market close; observation dates are not publication or retrieval dates. Treasury may revise past values.',
         ],
     }
@@ -247,6 +299,15 @@ def validate_curve(data):
             expected = n[p['tenor']] - r[p['tenor']] if n.get(p['tenor']) is not None and r.get(p['tenor']) is not None else None
             if (expected is None) != (p['rate'] is None) or (expected is not None and abs(p['rate'] - expected) > 1e-6):
                 raise ValueError(f'Breakeven is not nominal minus real on {curve["date"]} at {p["tenor"]}y')
+    frb_real, frb_breakeven = data.get('frbRealCurves') or [], data.get('frbBreakevenCurves') or []
+    if frb_real or frb_breakeven:
+        frb_dates = _check_curves(frb_breakeven, set(FRB_TENORS), 'Fed TIPS breakeven curve')
+        if not set(_check_curves(frb_real, set(FRB_TENORS), 'Fed TIPS real curve')) <= set(dates) or not set(frb_dates) <= set(dates):
+            raise ValueError('Fed TIPS curves fall on dates without a Treasury curve')
+        if data.get('frbAsOf') != frb_dates[-1] or not any(s.get('id') == 'frb-tips' for s in data['sources']):
+            raise ValueError('Fed TIPS overlay lacks a matching frbAsOf or source')
+    elif not data.get('frbError'):
+        raise ValueError('Fed TIPS overlay missing without a recorded download failure')
     latest = nominal_by[dates[-1]]
     if {p['tenor'] for p in latest if p['rate'] is not None} < {2.0, 10.0, 30.0}:
         raise ValueError('Latest nominal curve lacks 2, 10 or 30-year yields')

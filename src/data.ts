@@ -14,7 +14,7 @@ export type Operation = {date:string;type:string;name:string;amountMillion:numbe
 export type Debt = {schemaVersion:number;asOf:string;sources:Source[];securities:Security[];auctions:Auction[];calendar:Operation[];totals:{nominalMillion:number;upliftedMillion:number};availability:Record<string,unknown>;notes?:string[]};
 export type CurveObservation = {date:string;points:{tenor:number;rate:number|null}[]};
 export type Benchmark = {date:string;[key:string]:number|string|null};
-export type Curve = {schemaVersion:number;status?:string;asOf?:string;observationDate?:string|null;sources:Source[];curves:CurveObservation[];realCurves?:CurveObservation[];breakevenCurves?:CurveObservation[];notes?:string[];reason?:string;basis?:string;
+export type Curve = {schemaVersion:number;status?:string;asOf?:string;observationDate?:string|null;sources:Source[];curves:CurveObservation[];realCurves?:CurveObservation[];breakevenCurves?:CurveObservation[];/** US only: Federal Reserve Board staff TIPS curve (par, 2–20 years), on Treasury dates, about a week behind. */frbRealCurves?:CurveObservation[];frbBreakevenCurves?:CurveObservation[];frbAsOf?:string|null;frbError?:string;notes?:string[];reason?:string;basis?:string;
  /** Australia: no official real curve, so benchmark yields and a 10-year breakeven are published as time series. */
  benchmarks?:Benchmark[];benchmarkSeries?:Record<string,{seriesId:string;label:string}>;breakeven10y?:{date:string;value:number}[];breakeven10yBasis?:string;benchmarksAsOf?:string;dailyFrom?:string};
 export type GroupStatus = {status:string;lastChecked:string;lastSuccess?:string;error?:string;asOf?:string;releaseId?:string};
@@ -84,6 +84,9 @@ export function isOverdue(group:string,asOf:string,now=new Date()):boolean {
   // A five-weekday tolerance accommodates next-business-day publication and most bank holidays.
   let weekdays=0;for(let d=new Date(end);d<now;d.setUTCDate(d.getUTCDate()+1)){if(d.getUTCDay()!==0&&d.getUTCDay()!==6)weekdays++;if(weekdays>5)return true;}return false;
 }
+
+/** Latest overlay curve on or before `date`, at most ten days earlier (the Fed TIPS curve lags Treasury by about a week). */
+export function overlayCurve(curves:CurveObservation[]|undefined,date:string){const floor=new Date(Date.parse(`${date}T00:00:00Z`)-10*864e5).toISOString().slice(0,10);return curves?.filter(c=>c.date<=date&&c.date>=floor).at(-1);}
 
 export function gdpAt(gdp:Gdp|undefined,end:string,maxLagMonths=2){
  const row=gdp?.observations.filter(r=>r.date<=end).sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
