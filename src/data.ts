@@ -2,7 +2,7 @@ import {C} from './country';
 export type Source = {id:string;attribution?:string; name?:string; title?:string; publisher?:string; url:string; downloadUrl?:string; publicationDate?:string|null; observationDate?:string; retrievedAt?:string; licence?:string};
 export type Observation = {date:string; [key:string]:number|string|null};
 export type Series = {code:string;label:string;unit:string;scope:string;sourceTitle:string};
-export type Gdp = {basis:string;sources:Source[];observations:{date:string;rollingAnnualMillion:number|null}[]};
+export type Gdp = {basis:string;sources:Source[];observations:{date:string;rollingAnnualMillion:number|null;forecastQuarters?:string[]}[];forecastExtension?:{vintage:string;publicationDate:string;quarters:string[]}};
 export type Fiscal = {schemaVersion:number;asOf:string;releaseDate:string;nextRelease:string;scope:string;basis:string;sources:Source[];series:Record<string,Series>;observations:Observation[];gdp?:Gdp;notes:string[]};
 export type Composition = {socialProtectionSources?:Source[];socialProtection?:{year:string;sourceId?:string;total:number;items:{name:string;value:number}[]}[];history?:import('./budgetMath').FunctionalHistory;
  /** Australia: revenue by type, and the Commonwealth level as a separate (never additive) view. */
@@ -88,6 +88,8 @@ export function gdpAt(gdp:Gdp|undefined,end:string,maxLagMonths=2){
  if(!row||row.date<shiftMonth(end,-maxLagMonths)||typeof row.rollingAnnualMillion!=='number'||!Number.isFinite(row.rollingAnnualMillion)||row.rollingAnnualMillion<=0)return null;
  return row;
 }
+/** Disclosure when the GDP denominator at `end` includes OBR-forecast quarters ONS has not yet published. */
+export function gdpForecastNote(gdp:Gdp|undefined,end:string){const quarters=gdpAt(gdp,end)?.forecastQuarters;return quarters?.length?`GDP for ${quarters.map(q=>q.replace('Q',' Q')).join(' and ')} is not yet published, so GDP uses the ONS figure a year earlier grown in line with the OBR forecast${gdp?.forecastExtension?.vintage?` (${gdp.forecastExtension.vintage})`:''}.`:null;}
 export function flowValue(value:number|null,end:string,units:string,gdp?:Gdp):number|null {
  if(value==null)return null;
  if(units!=='gdp')return value/1000;

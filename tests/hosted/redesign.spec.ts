@@ -6,7 +6,7 @@ test('overview gives a concise orientation and direct analytical paths',async({p
  await page.goto('./');await expect(page).toHaveTitle('Fiscal Space');
  await expect(page.getByRole('heading',{name:'UK fiscal dashboard',exact:true})).toBeVisible();
  for(const name of ['Overview','Debt & financing','Explore'])await expect(page.getByRole('navigation').getByRole('button',{name,exact:true})).toBeVisible();
- await expect(page.locator('.overview .chart-panel:visible')).toHaveCount(7);
+ await expect(page.locator('.overview .chart-panel:visible')).toHaveCount(6);
  await expect(page.locator('.overview .metric')).toHaveCount(0);
  await expect(page.locator('.overview')).toContainText('Accounting contributions, not estimates of policy effects');
  await expect(page.locator('#overview-position-title')).toBeVisible();
@@ -164,4 +164,17 @@ test('composition change can be read as a waterfall from one total to the other'
  await expect(spending.locator('.waterfall-list li').first()).toContainText('2019-20 total');
  await expect(spending.locator('.waterfall-list li').last()).toContainText('total');
  await expect(page.locator('.fs-verdict')).toHaveCount(0);
+});
+
+test('OBR reminder appears only when a newer forecast is detected',async({page})=>{
+ await page.goto('./');await expect(page.locator('.lead-sentence')).toBeVisible();
+ await expect(page.locator('.obr-reminder')).toHaveCount(0);
+ await page.route('**/data/obr-check.json',route=>route.fulfill({json:{schemaVersion:1,status:'outdated',pinned:{vintage:'March 2026 Economic and fiscal outlook',publicationDate:'2026-03-03'},newer:[{title:'November 2026 Economic and fiscal outlook',url:'https://www.gov.uk/government/publications/november-2026-economic-and-fiscal-outlook',publishedAt:'2026-11-25'}]}}));
+ await page.reload();
+ const banner=page.locator('.obr-reminder');
+ await expect(banner).toContainText('Tell Patrick to update the OBR data');
+ await expect(banner.getByRole('link',{name:'November 2026 Economic and fiscal outlook'})).toHaveAttribute('href',/november-2026/);
+ await expect(banner.getByRole('link',{name:'Email Patrick'})).toHaveAttribute('href',/^mailto:p\.schneider@imperial\.ac\.uk\?subject=/);
+ await page.setViewportSize({width:390,height:844});
+ await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

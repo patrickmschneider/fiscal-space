@@ -71,3 +71,4 @@ html{scroll-padding-top:116px}.site-header{position:sticky;top:0;z-index:30}.sit
 .edition-switch a:hover{color:var(--ink)}
 .edition-switch a[aria-current=page]{background:var(--green);color:#fff}
 .site-header.compact .edition-switch{display:none}
+.obr-reminder{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 16px;padding:9px 16px;background:#fff3df;border-bottom:1px solid #e4cd9f;color:#765123;font-size:13px;line-height:1.5;text-align:center}.obr-reminder p{margin:0}.obr-reminder strong{color:#5e3f14}.obr-reminder-button{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid #c9a868;border-radius:20px;background:#fff;color:#5e3f14;text-decoration:none;font-weight:600;white-space:nowrap}.obr-reminder-button:hover{background:#fbe9c8}

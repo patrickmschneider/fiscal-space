@@ -51,6 +51,10 @@ jobs:
           au=$?
           set -e
           echo "status=$((uk || au))" >> "$GITHUB_OUTPUT"
+      - name: Check GOV.UK for an OBR forecast newer than the pinned vintage
+        if: steps.refresh.outcome != 'skipped'
+        continue-on-error: true
+        run: python -m pipeline.obr_check
       - run: python -m pipeline.refresh --validate && python -m pipeline.refresh --country au --validate
       - name: Preserve compact data vintages before deployment
         shell: bash

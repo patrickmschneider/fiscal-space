@@ -4,6 +4,7 @@ import io
 import re
 from datetime import datetime
 import openpyxl
+from .obr_gdp import EFO_PAGE, PUBLICATION_DATE, SOURCE_URL, VINTAGE, forecast_quarters, load_obr_gdp
 
 ONS_URL = 'https://www.ons.gov.uk/file?uri=/economy/governmentpublicsectorandtaxes/publicsectorfinance/datasets/publicsectorfinances/current/pusf.csv'
 ONS_PAGE = 'https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/datasets/publicsectorfinances'
@@ -214,8 +215,12 @@ def parse_pesa_history(raw):
                 'Economic affairs includes financial-sector interventions and temporary Covid and cost-of-living measures. TME excludes temporary public-sector bank classifications.'
             ]}
 
-def parse_gdp(raw):
-    """Published quarterly nominal GDP; never infer it from rounded fiscal ratios."""
+def parse_gdp(raw, through=None, obr=None):
+    """Published quarterly nominal GDP; never infer it from rounded fiscal ratios.
+
+    With `obr` (see pipeline.obr_gdp), quarters ONS has not yet published up to
+    the `through` month are filled from the OBR forecast and flagged per row.
+    """
     rows = list(csv.reader(io.StringIO(raw.decode('utf-8-sig'))))
     metadata = {r[0]: r[1] for r in rows if len(r) == 2 and not re.match(r'^\d{4}', r[0])}
     if metadata.get('CDID') != 'BKTL' or metadata.get('Source dataset ID') != 'PN2':
@@ -238,6 +243,9 @@ def parse_gdp(raw):
         quarters[index] = value
     if len(quarters) < 8:
         raise ValueError('Insufficient GDP quarters')
+    ons_end = max(quarters)
+    added = forecast_quarters(quarters, obr['quarters'], through) if obr and through else {}
+    quarters.update(added)
     observations = []
     # Missing quarters leave a null denominator rather than bridging a gap.
     for index in range(min(quarters), max(quarters) + 1):
@@ -245,30 +253,44 @@ def parse_gdp(raw):
         if y < 1999:
             continue
         values = [quarters.get(i) for i in range(index - 3, index + 1)]
-        observations.append({'date': f'{y:04d}-{(q0 + 1) * 3:02d}',
-                             'rollingAnnualMillion': sum(values) if all(v is not None for v in values) else None})
+        row = {'date': f'{y:04d}-{(q0 + 1) * 3:02d}',
+               'rollingAnnualMillion': sum(values) if all(v is not None for v in values) else None}
+        forecast = [f'{i // 4}Q{i % 4 + 1}' for i in range(index - 3, index + 1) if i in added]
+        if forecast:
+            row['forecastQuarters'] = forecast
+        observations.append(row)
     if not observations or not any(r['rollingAnnualMillion'] is not None for r in observations):
         raise ValueError('No complete four-quarter GDP totals')
-    return {
-        'code': 'BKTL', 'asOf': observations[-1]['date'], 'releaseDate': release,
+    ons_as_of = f'{ons_end // 4:04d}-{(ons_end % 4 + 1) * 3:02d}'
+    gdp = {
+        'code': 'BKTL', 'asOf': ons_as_of, 'releaseDate': release,
         'nextRelease': metadata.get('Next release'), 'unit': '£ million',
         'basis': 'Latest available four-quarter nominal GDP, current prices, not seasonally adjusted. Dashboard scaling, not an official ONS fiscal ratio.',
         'methodologyUrl': GDP_METHOD,
         'notes': [
-            'Sum four consecutive published BKTL quarters. No interpolation, forecast or inference from rounded debt/GDP ratios.',
+            'Sum four consecutive BKTL quarters. No interpolation or inference from rounded debt/GDP ratios.',
+            'Where ONS has not yet published the quarter ending at the flow endpoint, that quarter is the ONS value a year earlier grown by the OBR forecast year-on-year growth for the quarter. Such rows list their forecastQuarters and are replaced when ONS publishes.',
             'Scale flows by the latest quarter-end denominator at or before the flow endpoint, with at most two months of carry-forward; otherwise unavailable.',
             'Monthly and year-to-date flows are shares of annual GDP, without annualising the numerator.',
             'Historical GDP is the latest release vintage and may differ from the vintage underlying published fiscal ratios.'
         ],
         'sources': [{'id': 'ons-gdp-bktl', 'name': 'ONS · Nominal GDP (BKTL, PN2)',
                      'url': GDP_PAGE, 'downloadUrl': GDP_URL, 'publicationDate': release,
-                     'observationDate': observations[-1]['date'], 'licence': 'Open Government Licence v3.0'}],
+                     'observationDate': ons_as_of, 'licence': 'Open Government Licence v3.0'}],
         'observations': observations,
     }
+    if added:
+        gdp['sources'].append({'id': 'obr-gdp-forecast', 'name': f'OBR · {VINTAGE}, detailed economy table 1.4 (nominal GDP, NSA)',
+                               'url': EFO_PAGE, 'downloadUrl': SOURCE_URL, 'publicationDate': PUBLICATION_DATE,
+                               'licence': 'Open Government Licence v3.0'})
+        gdp['forecastExtension'] = {'vintage': VINTAGE, 'publicationDate': PUBLICATION_DATE,
+                                    'quarters': sorted(f'{i // 4}Q{i % 4 + 1}' for i in added),
+                                    'fileName': obr['fileName'], 'fileSha256': obr['fileSha256']}
+    return gdp
 
 def fetch_fiscal(fetch):
     fiscal = parse_pusf(fetch(ONS_URL))
-    fiscal['gdp'] = parse_gdp(fetch(GDP_URL))
+    fiscal['gdp'] = parse_gdp(fetch(GDP_URL), fiscal['asOf'], load_obr_gdp())
     return fiscal
 def fetch_composition(fetch):
     data = parse_pesa(fetch(PESA_URL))

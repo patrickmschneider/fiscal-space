@@ -1,0 +1,22 @@
+{
+ "schemaVersion": 1,
+ "checkedAt": "2026-10-26T13:52:18+00:00",
+ "pinned": {
+  "vintage": "March 2026 Economic and fiscal outlook",
+  "publicationDate": "2026-03-03"
+ },
+ "inputs": [
+  {
+   "vintage": "March 2026 Economic and fiscal outlook",
+   "publicationDate": "2026-03-03",
+   "use": "GDP for unpublished quarters"
+  },
+  {
+   "vintage": "March 2026 Economic and fiscal outlook",
+   "publicationDate": "2026-03-03",
+   "use": "outlook, fiscal rules and forecast paths"
+  }
+ ],
+ "status": "current",
+ "newer": []
+}
