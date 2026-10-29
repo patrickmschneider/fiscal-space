@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "checkedAt": "2026-10-28T19:00:16+00:00",
+ "checkedAt": "2026-10-29T19:06:54+00:00",
  "pinned": {
   "vintage": "March 2026 Economic and fiscal outlook",
   "publicationDate": "2026-03-03"
@@ -17,7 +17,12 @@
    "use": "outlook, fiscal rules and forecast paths"
   }
  ],
- "status": "unknown",
- "newer": [],
- "error": "503 Server Error: hostname doesn't match against certificate for url: https://www.gov.uk/api/content/government/publications/august-2026-economic-and-fiscal-outlook"
+ "status": "outdated",
+ "newer": [
+  {
+   "title": "Economic and fiscal outlook - October 2026",
+   "url": "https://www.gov.uk/government/publications/october-2026-economic-and-fiscal-outlook",
+   "publishedAt": "2026-10-28"
+  }
+ ]
 }
