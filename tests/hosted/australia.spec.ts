@@ -9,7 +9,8 @@ test('Australian edition loads its own data, pages and charts beneath au/',async
  expect(fiscal.scope).toContain('Australian Government');
  await page.goto('./au/?page=overview');
  await expect(page.getByText('A GUIDE TO THE AUSTRALIAN PUBLIC FINANCES')).toBeVisible();
- await expect(page.getByText(/The underlying cash deficit was|underlying cash surplus/).first()).toBeVisible();
+ // Monthly statements can run a quarter ahead of ABS GDP, when the rolling headline is withheld.
+ await expect(page.getByText(/The underlying cash deficit was|underlying cash surplus|The rolling annual deficit is unavailable/).first()).toBeVisible();
  await expect(page.getByText('Some saved data could not be loaded')).toHaveCount(0);
  const editions=page.getByRole('group',{name:'Country edition'});
  await expect(editions.getByRole('link',{name:'Australia'})).toHaveAttribute('aria-current','page');

@@ -167,9 +167,10 @@ test('composition change can be read as a waterfall from one total to the other'
 });
 
 test('OBR reminder appears only when a newer forecast is detected',async({page})=>{
+ await page.route('**/data/obr-check.json',route=>route.fulfill({json:{schemaVersion:1,status:'current',pinned:{vintage:'March 2026 Economic and fiscal outlook',publicationDate:'2026-03-03'},newer:[]}}));
  await page.goto('./');await expect(page.locator('.lead-sentence')).toBeVisible();
  await expect(page.locator('.obr-reminder')).toHaveCount(0);
- await page.route('**/data/obr-check.json',route=>route.fulfill({json:{schemaVersion:1,status:'outdated',pinned:{vintage:'March 2026 Economic and fiscal outlook',publicationDate:'2026-03-03'},newer:[{title:'November 2026 Economic and fiscal outlook',url:'https://www.gov.uk/government/publications/november-2026-economic-and-fiscal-outlook',publishedAt:'2026-11-25'}]}}));
+ await page.unrouteAll();await page.route('**/data/obr-check.json',route=>route.fulfill({json:{schemaVersion:1,status:'outdated',pinned:{vintage:'March 2026 Economic and fiscal outlook',publicationDate:'2026-03-03'},newer:[{title:'November 2026 Economic and fiscal outlook',url:'https://www.gov.uk/government/publications/november-2026-economic-and-fiscal-outlook',publishedAt:'2026-11-25'}]}}));
  await page.reload();
  const banner=page.locator('.obr-reminder');
  await expect(banner).toContainText('Tell Patrick to update the OBR data');
