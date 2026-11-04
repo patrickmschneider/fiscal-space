@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
       contents: write
@@ -103,7 +103,7 @@ jobs:
           path: dist
   deploy:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
@@ -117,7 +117,7 @@ jobs:
   refresh-health:
     needs: [build, deploy]
     if: always() && needs.deploy.result == 'success' && needs.build.outputs.refresh_status != '' && needs.build.outputs.refresh_status != '0'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - run: |
           echo 'Source refresh failed. Published validated retained data and the visible failure status; inspect the refresh log.'
