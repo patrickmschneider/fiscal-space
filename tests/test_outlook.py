@@ -82,4 +82,30 @@ class OutlookTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'identity'):
             self.parsed([t.replace('152.7 132.7 115.5','152.7 232.7 115.5')for t in texts])
 
+class OctoberOutlookTests(unittest.TestCase):
+    """October 2026 EFO Annex A tables A.3, A.5, A.7 and A.9 (physical pages 186, 188, 190, 192)."""
+    def parsed(self,texts=None):
+        texts=texts or json.loads((FIXTURES/'outlook_tables_october.json').read_text())
+        reader=type('Reader',(),{'pages':[Page(t)for t in texts]})()
+        with patch.object(outlook,'PdfReader',return_value=reader):return outlook.parse_october(b'fixture')
+
+    def test_rolls_forward_one_year(self):
+        october=self.parsed()
+        self.assertEqual(october['id'],'2026-10')
+        self.assertEqual([r['year'] for r in october['rows']],outlook.fiscal_years(2025))
+        self.assertEqual(october['forecastStart'],'2026-27')
+        self.assertEqual(october['rows'][0]['status'],'outturn')
+
+    def test_matches_published_rule_margins(self):
+        rows={r['year']:r for r in self.parsed()['rows']}
+        # The OBR reports the 2029-30 stability margin as £15bn and £22bn in 2030-31.
+        self.assertEqual(rows['2029-30']['currentBudgetDeficitBn'],-14.5)
+        self.assertEqual(rows['2030-31']['currentBudgetDeficitBn'],-21.7)
+        self.assertEqual(rows['2026-27']['borrowingBn'],133.2)
+        self.assertEqual(rows['2026-27']['giltYield'],5.1)
+
+    def test_march_layout_rejected(self):
+        texts=json.loads((FIXTURES/'outlook_tables.json').read_text())
+        with self.assertRaisesRegex(ValueError,'header missing'):self.parsed(texts)
+
 if __name__=='__main__':unittest.main()

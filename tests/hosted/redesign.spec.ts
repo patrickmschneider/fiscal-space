@@ -69,16 +69,16 @@ test('series explorer persists transformations, windows and units and exports',a
 
 test('outlook vintage state survives history while reconstruction and formal headroom remain distinct',async({page})=>{
  await page.goto('./?page=fiscal&section=outlook');
- const choice=page.getByRole('combobox',{name:'Forecast vintage',exact:true});await expect(choice.locator('option')).toHaveCount(2);
+ const choice=page.getByRole('combobox',{name:'Forecast vintage',exact:true});await expect(choice.locator('option')).toHaveCount(3);
  await choice.selectOption('2025-11');await expect(page.locator('[aria-labelledby="outlook-path-borrowing-title"]')).toContainText('reconstructed');
  const saved=page.url();await page.reload();await expect(choice).toHaveValue('2025-11');await expect(page).toHaveURL(saved);
  await choice.selectOption('2026-03');await page.goBack();await expect(choice).toHaveValue('2025-11');await page.goForward();await expect(choice).toHaveValue('2026-03');
  await page.getByText('Fiscal stance and real spending growth',{exact:true}).click();await expect(page.locator('[aria-labelledby="stance-balance-title"] .recharts-line-dot').first()).toBeVisible();
  await page.getByRole('link',{name:'Fiscal rules, headroom and borrowing sensitivities →',exact:true}).click();
- await expect(page.locator('.rule-row').first()).toContainText('21.7');await expect(page.locator('.rule-row').first()).toContainText('Last formal assessment');
- await expect(page.locator('.coverage-note').filter({hasText:'March forecast update'})).toContainText('23.6');
+ await expect(page.locator('.rule-row').first()).toContainText('14.5');await expect(page.locator('.rule-row').first()).toContainText('Last formal assessment');
+ await expect(page.locator('.coverage-note').filter({hasText:'Forecast update'})).toHaveCount(0);
  await expect(page.getByRole('table',{name:'Official OBR borrowing sensitivities',exact:true})).toBeVisible();
- await expect(page.locator('#headroom-history-title').locator('..').locator('..').locator('..')).toContainText('not a formal assessment');
+ await expect(page.locator('#headroom-history-title').locator('..').locator('..').locator('..')).toContainText('October 2026 → 2029-30');
 });
 
 test('shared units change headline and official forecast stocks and follow composition links',async({page,request})=>{
@@ -119,7 +119,7 @@ test('overview composition sits before pricing and compares selected years on co
 
 
 test('deficit decompositions reconcile and distinguish forecasts and structural coverage',async({page,request})=>{
- const data=await(await request.get('data/outlook.json')).json();const v=data.vintages.find((x:{id:string})=>x.id==='2026-03'),r=v.rows[1];
+ const data=await(await request.get('data/outlook.json')).json();const v=data.vintages.find((x:{id:string})=>x.id===data.latestVintage),r=v.rows[1];
  await page.goto('./?page=fiscal&section=deficits&units=bn');await expect(page.getByRole('heading',{name:'Deficit decomposition.',exact:true})).toBeVisible();
  await expect(page.locator('[aria-labelledby="deficit-primary-title"] .recharts-line-curve')).toBeVisible();
  const chart=page.locator('[aria-labelledby="deficit-primary-title"]');
