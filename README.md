@@ -4,7 +4,7 @@ A personal UK fiscal research tool for Patrick Schneider. Start with a concise O
 
 ## Hosted app
 
-[Open the dashboard](https://patrickmschneider.github.io/fiscal-space/). GitHub Pages serves the app over HTTPS; no login, backend or paid subscription is required. The app and data are public.
+[Open the dashboard](https://www.patrickmschneider.com/fiscal-space/). GitHub Pages serves the app over HTTPS; no login, backend or paid subscription is required. The app and data are public.
 
 The **Publish dashboard** GitHub Actions workflow deploys pushes to `main` and checks official sources daily at 13:17 UTC (13:17 London winter / 14:17 summer; GitHub schedules may run late). For an immediate refresh, open the repository’s Actions tab, select that workflow, and choose **Run workflow** with refresh enabled. A source failure retains validated previous data, displays its failure status, and marks the run failed after deploying. Enable repository Actions notifications in your GitHub notification settings if you want failure emails. GitHub can disable schedules on inactive public repositories after 60 days; re-enable the workflow if that happens.
 

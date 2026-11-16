@@ -3,10 +3,11 @@ import react from '@vitejs/plugin-react';
 
 // `--mode au` / `--mode us` build the Australian and US editions from the same code with their own saved data in public-<mode>/.
 const editions = {
-  uk: { title: 'Fiscal Space', description: 'Understanding the UK fiscal position, outlook and risks. Official data, transparent calculations and forecast vintages.', short: 'Fiscal Space: a guide to the UK public finances', url: 'https://patrickmschneider.github.io/fiscal-space/' },
-  us: { title: 'Fiscal Space · United States', description: 'Understanding the US federal fiscal position, outlook and risks. Official data, transparent calculations and projection vintages.', short: 'Fiscal Space: a guide to the US federal finances', url: 'https://patrickmschneider.github.io/fiscal-space/us/' },
-  au: { title: 'Fiscal Space · Australia', description: 'Understanding the Australian Government fiscal position, outlook and risks. Official data, transparent calculations and forecast vintages.', short: 'Fiscal Space: a guide to the Australian public finances', url: 'https://patrickmschneider.github.io/fiscal-space/au/' },
+  uk: { title: 'Fiscal Space', description: 'Understanding the UK fiscal position, outlook and risks. Official data, transparent calculations and forecast vintages.', short: 'Fiscal Space: a guide to the UK public finances', url: 'https://www.patrickmschneider.com/fiscal-space/' },
+  us: { title: 'Fiscal Space · United States', description: 'Understanding the US federal fiscal position, outlook and risks. Official data, transparent calculations and projection vintages.', short: 'Fiscal Space: a guide to the US federal finances', url: 'https://www.patrickmschneider.com/fiscal-space/us/' },
+  au: { title: 'Fiscal Space · Australia', description: 'Understanding the Australian Government fiscal position, outlook and risks. Official data, transparent calculations and forecast vintages.', short: 'Fiscal Space: a guide to the Australian public finances', url: 'https://www.patrickmschneider.com/fiscal-space/au/' },
 };
+// `url` is each edition's canonical address: every ?page=… view declares it, so search engines index one page per edition.
 
 const editionId = (mode: string) => (mode === 'au' || mode === 'us' ? mode : 'uk');
 
